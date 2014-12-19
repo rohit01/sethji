@@ -6,6 +6,9 @@
 # Python virtualenv
 venv
 
+# Test file
+test_export.sh
+
 # Unit test / coverage reports
 .coverage
 .tox
