@@ -43,6 +43,8 @@ class Ec2Handler(object):
         tag_keys = []
         for k, v in instance.tags.items():
             k, v = k.strip(), v.strip()
+            if (not k) or (not v):
+                continue
             details['tag:%s' % k] = v
             tag_keys.append(k)
         details['tag_keys'] = ','.join(tag_keys)
