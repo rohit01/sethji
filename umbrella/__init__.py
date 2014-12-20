@@ -3,11 +3,14 @@
 
 import flask
 import os
-import umbrella.config
 
 
 app = flask.Flask(__name__)
 app.config.from_object('config')
+
+
+from umbrella.views import sync
+app.register_blueprint(sync.mod)
 
 
 @app.errorhandler(404)

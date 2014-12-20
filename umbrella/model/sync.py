@@ -5,49 +5,47 @@ import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
 
-import umbrella
-import umbrella.config
-import umbrella.database.redis_handler
-import umbrella.aws.ec2
-import redis
+from umbrella import app
+from redis_handler import RedisHandler
+from ec2 import get_region_list, Ec2Handler
 import time
 
 
-index_keys = None
+_index_keys = None
 
 
 def get_redis_handler():
-    return umbrella.database.redis_handler.RedisHandler(
-        host=umbrella.config.REDIS_HOST,
-        port=umbrella.config.REDIS_PORT_NO,
-        password=umbrella.config.REDIS_PASSWORD,
-        timeout=umbrella.config.REDIS_TIMEOUT,
+    return RedisHandler(
+        host=app.config['REDIS_HOST'],
+        port=app.config['REDIS_PORT_NO'],
+        password=app.config['REDIS_PASSWORD'],
+        timeout=app.config['REDIS_TIMEOUT'],
     )
 
 
 def sync_aws():
-    global index_keys
-    index_keys = []
+    global _index_keys
+    _index_keys = []
     thread_list = sync_ec2(
-        apikey=umbrella.config.AWS_ACCESS_KEY_ID,
-        apisecret=umbrella.config.AWS_SECRET_ACCESS_KEY,
-        regions=umbrella.config.REGIONS,
-        expire=umbrella.config.EXPIRE_DURATION
+        apikey=app.config['AWS_ACCESS_KEY_ID'],
+        apisecret=app.config['AWS_SECRET_ACCESS_KEY'],
+        regions=app.config['REGIONS'],
+        expire=app.config['EXPIRE_DURATION']
     )
     print 'Sync Started... . . .  .  .   .     .     .'
-    gevent.joinall(thread_list, timeout=umbrella.config.SYNC_TIMEOUT)
+    gevent.joinall(thread_list, timeout=app.config['SYNC_TIMEOUT'])
     gevent.killall(thread_list)
     print 'Starting cleanup of stale records...'
     clean_stale_entries()
     print 'Details saved. Indexing records!'
-    umbrella.sync.index_records(expire=umbrella.config.EXPIRE_DURATION)
-    index_keys = None
+    index_records(expire=app.config['EXPIRE_DURATION'])
+    _index_keys = None
     print 'Complete'
 
 
 def sync_ec2(apikey, apisecret, regions, expire):
     if (regions is None) or (regions == 'all'):
-        region_list = umbrella.aws.ec2.get_region_list()
+        region_list = get_region_list()
     else:
         region_list = [r.strip() for r in regions.split(',')]
     thread_list = []
@@ -64,7 +62,7 @@ def sync_ec2(apikey, apisecret, regions, expire):
 
 
 def sync_ec2_instances(apikey, apisecret, region, expire):
-    ec2_handler = umbrella.aws.ec2.Ec2Handler(apikey, apisecret, region)
+    ec2_handler = Ec2Handler(apikey, apisecret, region)
     redis_handler = get_redis_handler()
     try:
         instance_list = ec2_handler.fetch_all_instances()
@@ -76,14 +74,14 @@ def sync_ec2_instances(apikey, apisecret, region, expire):
         instance_details = ec2_handler.get_instance_details(instance)
         instance_details['timestamp'] = int(time.time())
         hash_key, status = redis_handler.save_instance_details(instance_details)
-        index_keys.append(hash_key)
+        _index_keys.append(hash_key)
         if expire > 0:
             redis_handler.expire(hash_key, expire)
     print "Instance sync complete for ec2 region: %s" % ec2_handler.region
 
 
 def sync_ec2_elbs(apikey, apisecret, region, expire):
-    ec2_handler = umbrella.aws.ec2.Ec2Handler(apikey, apisecret, region)
+    ec2_handler = Ec2Handler(apikey, apisecret, region)
     redis_handler = get_redis_handler()
     try:
         elb_list = ec2_handler.fetch_all_elbs()
@@ -109,14 +107,14 @@ def sync_ec2_elbs(apikey, apisecret, region, expire):
                 key='instance_elb_names', value=instance_elb_names,
             )
         hash_key, status = redis_handler.save_elb_details(details)
-        index_keys.append(hash_key)
+        _index_keys.append(hash_key)
         if expire > 0:
             redis_handler.expire(hash_key, expire)
     print "ELB sync complete for ec2 region: %s" % ec2_handler.region
 
 
 def sync_elastic_ips(apikey, apisecret, region, expire):
-    ec2_handler = umbrella.aws.ec2.Ec2Handler(apikey, apisecret, region)
+    ec2_handler = Ec2Handler(apikey, apisecret, region)
     redis_handler = get_redis_handler()
     try:
         elastic_ip_list = ec2_handler.fetch_elastic_ips()
@@ -128,7 +126,7 @@ def sync_elastic_ips(apikey, apisecret, region, expire):
         details = ec2_handler.get_elastic_ip_detail(elastic_ip)
         details['timestamp'] = int(time.time())
         hash_key, status = redis_handler.save_elastic_ip_details(details)
-        index_keys.append(hash_key)
+        _index_keys.append(hash_key)
         if expire > 0:
             redis_handler.expire(hash_key, expire)
     print "Elastic ip sync complete for ec2 region: %s" % ec2_handler.region
@@ -136,16 +134,16 @@ def sync_elastic_ips(apikey, apisecret, region, expire):
 
 def clean_stale_entries():
     redis_handler = get_redis_handler()
-    redis_handler.clean_instance_entries(valid_keys=index_keys)
-    redis_handler.clean_elb_entries(valid_keys=index_keys)
-    redis_handler.clean_elastic_ip_entries(valid_keys=index_keys)
+    redis_handler.clean_instance_entries(valid_keys=_index_keys)
+    redis_handler.clean_elb_entries(valid_keys=_index_keys)
+    redis_handler.clean_elastic_ip_entries(valid_keys=_index_keys)
 
 
 def index_records(expire):
     redis_handler = get_redis_handler()
     indexed_tags = {}
     default_tag = "--UNTAGGED--"
-    for hash_key in index_keys:
+    for hash_key in _index_keys:
         details = redis_handler.get_details(hash_key)
         tag_keys = details.get('tag_keys', '').split(',')
         if '' in tag_keys:
