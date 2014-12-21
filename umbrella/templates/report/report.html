@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block title %}Report{% endblock %}
+
+{% block body %}
+  <br />
+  <center><h1></h1></center>
+
+  {% if tag_resources.get('instance') %}
+  <center><h1>EC2 Instances</h1></center>
+  <table class="table table-bordered table-striped">
+    <tr class="info">
+        <td>Name</td>
+        <td>Instance ID</td>
+        <td>Instance Type</td>
+        <td>Region</td>
+    </tr>
+    {% for details in tag_resources.get('instance', []) %}
+    <tr>
+        <td>{{ details.get('tag:Name', '-') }}</td>
+        <td>{{ details.get('instance_id', '-') }}</td>
+        <td>{{ details.get('instance_type', '-') }}</td>
+        <td>{{ details.get('region', '-') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {% if tag_resources.get('elb') %}
+  <center><h1>Load Balancers (ELB)</h1></center>
+  <table class="table table-bordered table-striped">
+    <tr class="info">
+        <td>Name</td>
+        <td>No. of instances</td>
+        <td>Region</td>
+    </tr>
+    {% for details in tag_resources.get('elb', []) %}
+    <tr>
+        <td>{{ details.get('elb_name', '-') }}</td>
+        {% if details.get('elb_instances', '') == '' %}
+          <td>0</td>
+        {% else %}
+          <td>{{ details.get('elb_instances', '').split(',') | length }}</td>
+        {% endif %}
+        <td>{{ details.get('region', '-') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {% if tag_resources.get('elastic_ip') %}
+  <center><h1>Elastic IPs</h1></center>
+  <table class="table table-bordered table-striped">
+    <tr class="info">
+        <td>Elastic IP</td>
+        <td>Instance ID</td>
+        <td>Region</td>
+    </tr>
+    {% for details in tag_resources.get('elastic_ip', []) %}
+    <tr>
+        <td>{{ details.get('elastic_ip', '-') }}</td>
+        <td>{{ details.get('instance_id', '') }}</td>
+        <td>{{ details.get('region', '-') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  <br />
+{% endblock %}

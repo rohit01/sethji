@@ -10,7 +10,9 @@ app.config.from_object('config')
 
 
 from umbrella.views import sync
+from umbrella.views import report
 app.register_blueprint(sync.mod)
+app.register_blueprint(report.mod)
 
 
 @app.errorhandler(404)

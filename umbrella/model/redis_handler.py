@@ -60,6 +60,10 @@ class RedisHandler(object):
         return (self.all_tags_hash, status)
 
 
+    def get_indexed_tags(self):
+        return self.connection.hgetall(self.all_tags_hash)
+
+
     def clean_elb_entries(self, valid_keys):
         for hash_key in self.connection.keys("%s*" % self.elb_hash_prefix):
             if hash_key not in valid_keys:
