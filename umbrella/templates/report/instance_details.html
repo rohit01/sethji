@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}Report - {{ selected_tag }}{% endblock %}
+
+{% block body %}
+
+  {% if instance_details %}
+    <h2 align="center">Instance Details</h2>
+    <table class="table table-bordered table-striped">
+      <tr class="info">
+          <td>Property</td>
+          <td>Value</td>
+      </tr>
+      {% for key, value in instance_details.items() %}
+      <tr>
+          <td>{{ key }}</td>
+          <td>{{ value }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <h2 align="center">Instance not Found!</h2>
+  {% endif %}
+
+  <br />
+{% endblock %}

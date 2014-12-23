@@ -28,6 +28,11 @@ class RedisHandler(object):
         return (hash_key, status)
 
 
+    def get_instance_details(self, region, instance_id):
+        hash_key = "%s:%s:%s" % (self.instance_hash_prefix, region, instance_id)
+        return self.connection.hgetall(hash_key)
+
+
     def add_instance_detail(self, region, instance_id, key, value):
         hash_key = "%s:%s:%s" % (self.instance_hash_prefix, region,
                                  instance_id)

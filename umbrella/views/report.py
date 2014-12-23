@@ -33,3 +33,12 @@ def report(tag_name):
         selected_tag=tag_name,
         tag_resources=tag_resources,
     )
+
+@mod.route("/instance/<region>/<instance_id>")
+def instance_details(region, instance_id):
+    reports = TagReport()
+    instance_details = reports.get_instance_details(region, instance_id)
+    return render_template(
+        'report/instance_details.html',
+        instance_details=instance_details
+    )

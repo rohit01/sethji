@@ -44,7 +44,7 @@
         {% if selected_tag != 'Name' %}
           <td>{{ details.get('tag:Name', '-') }}</td>
         {% endif %}
-        <td>{{ details.get('instance_id', '-') }}</td>
+        <td><a href="/report/instance/{{ details.get('region', '-') }}/{{ details.get('instance_id', '-') }}">{{ details.get('instance_id', '-') }}</a></td>
         <td>{{ details.get('instance_type', '-') }}</td>
         <td>{{ details.get('region', '-') }}</td>
     </tr>
@@ -106,7 +106,7 @@
     {% for details in tag_resources.get('--NOT-TRACKED--', {}).get('instance', []) %}
     <tr>
         <td>{{ details.get('tag:Name', '-') }}</td>
-        <td>{{ details.get('instance_id', '-') }}</td>
+        <td><a href="/report/instance/{{ details.get('region', '-') }}/{{ details.get('instance_id', '-') }}">{{ details.get('instance_id', '-') }}</a></td>
         <td>{{ details.get('instance_type', '-') }}</td>
         <td>{{ details.get('region', '-') }}</td>
     </tr>
