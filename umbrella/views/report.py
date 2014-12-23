@@ -27,6 +27,6 @@ def report(tag_name):
     return render_template(
         'report/report.html',
         tag_keys=tag_keys,
-        select_tag=tag_name,
+        selected_tag=tag_name,
         tag_resources=tag_resources,
     )

@@ -7,6 +7,7 @@ import os
 
 app = flask.Flask(__name__)
 app.config.from_object('config')
+ALL_RESOURCE_INDEX = '__ALL_RESOURCE_INDEX__'
 
 
 from umbrella.views import sync

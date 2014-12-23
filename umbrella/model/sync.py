@@ -5,7 +5,7 @@ import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
 
-from umbrella import app
+from umbrella import app, ALL_RESOURCE_INDEX
 from redis_handler import RedisHandler
 from ec2 import get_region_list, Ec2Handler
 import time
@@ -120,6 +120,7 @@ class SyncAws(object):
         for elastic_ip in elastic_ip_list:
             details = ec2_handler.get_elastic_ip_detail(elastic_ip)
             details['timestamp'] = int(time.time())
+            details['region'] = region
             hash_key, _ = self.redis_handler.save_elastic_ip_details(details)
             self.index_keys.append(hash_key)
             if self.expire > 0:
@@ -135,19 +136,16 @@ class SyncAws(object):
 
     def index_records(self):
         indexed_tags = {}
-        default_tag = "--UNTAGGED--"
+        self.save_index(','.join(self.index_keys), ALL_RESOURCE_INDEX)
         for hash_key in self.index_keys:
             details = self.redis_handler.get_details(hash_key)
             tag_keys = details.get('tag_keys', '').split(',')
             if '' in tag_keys:
                 tag_keys.remove('')
-            if not tag_keys:
-                tag_keys = [default_tag]
             for tage_name in tag_keys:
-                if tage_name == default_tag:
-                    tag_value = default_tag
-                else:
-                    tag_value = details['tag:%s' % tage_name].strip()
+                tag_value = details.get('tag:%s' % tage_name, '').strip()
+                if not tag_value:
+                    continue
                 self.save_index(hash_key, tag_value)
                 if indexed_tags.get(tage_name, None):
                     value_list = indexed_tags[tage_name].split(',')

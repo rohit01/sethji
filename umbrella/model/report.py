@@ -5,7 +5,7 @@ import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
 
-from umbrella import app
+from umbrella import app, ALL_RESOURCE_INDEX
 from redis_handler import RedisHandler
 
 
@@ -30,24 +30,38 @@ class TagReport(object):
         for value in tag_values.split(','):
             if value.strip():
                 hash_keys = self.redis_handler.get_index(value) or ''
-                hash_set.update(hash_keys.split(','))
+                if hash_keys:
+                    hash_set.update(hash_keys.split(','))
+        all_hash_keys = self.redis_handler.get_index(ALL_RESOURCE_INDEX)
+        all_hash_set = set(all_hash_keys.split(','))
         tag_resources = {
-            'instance': [],
-            'elb': [],
-            'elastic_ip': [],
+            tag_key: {
+                'instance': [],
+                'elb': [],
+                'elastic_ip': [],
+            },
+            '--NOT-TRACKED--': {
+                'instance': [],
+                'elb': [],
+                'elastic_ip': [],
+            },
         }
-        for key in hash_set:
+        for key in all_hash_set:
             if not key.strip():
                 continue
             details = self.redis_handler.get_details(key)
             if not details:
                 continue
+            if key in hash_set:
+                category = tag_key
+            else:
+                category = '--NOT-TRACKED--'
             if key.startswith(self.redis_handler.instance_hash_prefix):
-                tag_resources['instance'].append(details)
+                tag_resources[category]['instance'].append(details)
             elif key.startswith(self.redis_handler.elb_hash_prefix):
-                tag_resources['elb'].append(details)
+                tag_resources[category]['elb'].append(details)
             elif key.startswith(self.redis_handler.elastic_ip_hash_prefix):
-                tag_resources['elastic_ip'].append(details)
+                tag_resources[category]['elastic_ip'].append(details)
             else:
                 raise Exception("Unable to categorize info: %s" % str(details))
         return tag_resources
