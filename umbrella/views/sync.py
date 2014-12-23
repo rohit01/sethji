@@ -8,7 +8,7 @@ from flask import Blueprint, render_template
 mod = Blueprint('sync', __name__, url_prefix='/sync')
 
 
-@mod.route("/")
+@mod.route("/", methods=["POST"])
 def sync():
     sync_aws = SyncAws()
     sync_aws.sync()

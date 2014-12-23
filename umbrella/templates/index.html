@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block title %}Welcome{% endblock %}
+
+{% block body %}
+  <center>
+    <h1>Welcome</h1>
+    <br />
+    <div class="row">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4">
+        <a href="/report/"><button type="button" class="btn btn-primary btn-lg btn-block">Show Report</button></a>
+      </div>
+    </div>
+    <br /><br />
+    <div class="row">
+      <div class="col-sm-4"></div>
+      <div class="col-sm-4">
+        <form action="/sync/" method="post">
+          <button type="submit" class="btn btn-primary btn-lg btn-block">Sync AWS</button>
+        </form>
+      </div>
+    </div>
+    <br />
+  </center>
+{% endblock %}

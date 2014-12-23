@@ -4,24 +4,26 @@
 {% block body %}
   <div class="row">
     <div class="col-sm-6"><h2 align="right">Report based on</h2></div>
-    <div class="col-sm-6"><form>
-    <div class="dropdown">
-      <br />
-      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
-        {{selected_tag}}
-        <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu dropdown-menu-center" role="menu" aria-labelledby="dropdownMenu1">
-        <li role="presentation" class="disabled"><a role="menuitem" tabindex="-1">{{ selected_tag }}</a></li>
-        <li role="presentation" class="divider"></li>
-        {% for tag_name in tag_keys %}
-          {% if tag_name != selected_tag %}
-            <li role="presentation"><a role="menuitem" tabindex="-1" href="/report/{{ tag_name }}">{{ tag_name }}</a></li>
-          {% endif %}
-        {% endfor %}
-      </ul>
+    <div class="col-sm-6">
+    <form>
+      <div class="dropdown">
+        <br />
+        <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+          {{selected_tag}}
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-center" role="menu" aria-labelledby="dropdownMenu1">
+          <li role="presentation" class="disabled"><a role="menuitem" tabindex="-1">{{ selected_tag }}</a></li>
+          <li role="presentation" class="divider"></li>
+          {% for tag_name in tag_keys %}
+            {% if tag_name != selected_tag %}
+              <li role="presentation"><a role="menuitem" tabindex="-1" href="/report/{{ tag_name }}">{{ tag_name }}</a></li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+    </form>
     </div>
-    </form></div>
   </div>
 
   {% if tag_resources.get(selected_tag, {}).get('instance') %}

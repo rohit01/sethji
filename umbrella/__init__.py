@@ -25,3 +25,8 @@ def not_found(error):
 def favicon():
     return flask.send_from_directory(
         os.path.join(app.root_path, 'static'), 'favicon.ico')
+
+
+@app.route('/')
+def index():
+    return flask.render_template('index.html')
