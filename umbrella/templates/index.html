@@ -5,10 +5,14 @@
   <center>
     <h1>Welcome</h1>
     <br />
+    <!-- <a href="/report/"><button type="button" class="btn btn-outline-inverse btn-lg">Show Report</button></a> -->
+
     <div class="row">
       <div class="col-sm-4"></div>
       <div class="col-sm-4">
-        <a href="/report/"><button type="button" class="btn btn-primary btn-lg btn-block">Show Report</button></a>
+        <form action="/report/">
+          <button type="submit" class="btn btn-success btn-lg btn-block">Show Report</button>
+        </form>
       </div>
     </div>
     <br /><br />
@@ -16,7 +20,7 @@
       <div class="col-sm-4"></div>
       <div class="col-sm-4">
         <form action="/sync/" method="post">
-          <button type="submit" class="btn btn-primary btn-lg btn-block">Sync AWS</button>
+          <button type="submit" class="btn btn-warning btn-lg btn-block">Sync AWS</button>
         </form>
       </div>
     </div>
