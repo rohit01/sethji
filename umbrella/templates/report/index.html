@@ -1,8 +1,23 @@
 {% extends "layout.html" %}
-{% block title %}Report{% endblock %}
+{% block title %}Generate report{% endblock %}
 
 {% block body %}
-  <br />
-  <center><h1>Define Report</h1></center>
+  <div class="row">
+    <div class="col-sm-6"><h2 align="right">Generate report based on</h2></div>
+    <div class="col-sm-6"><form>
+    <div class="dropdown">
+      <br />
+      <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+        -- Select --
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-center" role="menu" aria-labelledby="dropdownMenu1">
+        {% for tag_name in tag_keys %}
+          <li role="presentation"><a role="menuitem" tabindex="-1" href="/report/{{ tag_name }}">{{ tag_name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    </form></div>
+  </div>
   <br />
 {% endblock %}
