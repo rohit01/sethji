@@ -60,6 +60,11 @@ class RedisHandler(object):
         return (hash_key, status)
 
 
+    def get_elb_details(self, region, elb_name):
+        hash_key = "%s:%s:%s" % (self.elb_hash_prefix, region, elb_name)
+        return self.connection.hgetall(hash_key)
+
+
     def save_indexed_tags(self, indexed_tags):
         status = self.connection.hmset(self.all_tags_hash, indexed_tags)
         return (self.all_tags_hash, status)

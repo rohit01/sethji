@@ -62,7 +62,7 @@
     </tr>
     {% for details in tag_resources.get(selected_tag, {}).get('elb', []) %}
     <tr>
-        <td>{{ details.get('elb_name', '-') }}</td>
+        <td><a href="/report/elb/{{ details.get('region', '-') }}/{{ details.get('elb_name', '-') }}">{{ details.get('elb_name', '-') }}</a></td>
         {% if details.get('elb_instances', '') == '' %}
           <td>0</td>
         {% else %}
@@ -124,7 +124,7 @@
     </tr>
     {% for details in tag_resources.get('--NOT-TRACKED--', {}).get('elb', []) %}
     <tr>
-        <td>{{ details.get('elb_name', '-') }}</td>
+        <td><a href="/report/elb/{{ details.get('region', '-') }}/{{ details.get('elb_name', '-') }}">{{ details.get('elb_name', '-') }}</a></td>
         {% if details.get('elb_instances', '') == '' %}
           <td>0</td>
         {% else %}

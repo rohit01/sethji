@@ -7,7 +7,6 @@ gevent.monkey.patch_all()
 
 from umbrella import app, ALL_RESOURCE_INDEX
 from redis_handler import RedisHandler
-import time
 
 
 class TagReport(object):
@@ -69,16 +68,8 @@ class TagReport(object):
 
 
     def get_instance_details(self, region, instance_id):
-        details = self.redis_handler.get_instance_details(region, instance_id)
-        for tag_name in details.get('tag_keys', '').split(','):
-            if not tag_name:
-                continue
-            if details.get('tag:%s' % tag_name):
-                details['Tag - %s' % tag_name] = details.pop('tag:%s' % tag_name)
-        if details.get('tag_keys'):
-            details.pop('tag_keys')
-        if details.get('timestamp'):
-            time_now = int(round(time.time()))
-            delay = time_now - int(details.pop('timestamp'))
-            details['Last Checked'] = "%s seconds ago" % delay
-        return details
+        return self.redis_handler.get_instance_details(region, instance_id)
+
+
+    def get_elb_details(self, region, elb_name):
+        return self.redis_handler.get_elb_details(region, elb_name)
