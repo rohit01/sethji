@@ -7,6 +7,10 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 
+## Google OAuth Credentials
+GOOGLE_ID = os.environ.get('GOOGLE_ID', None)
+GOOGLE_SECRET = os.environ.get('GOOGLE_SECRET', None)
+
 ## Redis settings
 REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
 REDIS_PORT_NO = int(os.environ.get('REDIS_PORT_NO', 6379))
@@ -39,3 +43,6 @@ EXPIRE_DURATION = 2592000                # 30 Days
 
 # ## Sentry for catching exceptions
 # SENTRY_DSN = os.environ.get('SENTRY_DSN', None)
+
+## Secret key for cookies
+SECRET_KEY = os.urandom(128)

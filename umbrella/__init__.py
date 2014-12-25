@@ -10,10 +10,10 @@ app.config.from_object('config')
 ALL_RESOURCE_INDEX = '__ALL_RESOURCE_INDEX__'
 
 
-from umbrella.views import sync
-from umbrella.views import report
+from umbrella.views import sync, report, account
 app.register_blueprint(sync.mod)
 app.register_blueprint(report.mod)
+app.register_blueprint(account.mod)
 
 
 @app.errorhandler(404)
