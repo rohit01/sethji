@@ -5,7 +5,6 @@
   <center>
     <h1>Welcome</h1>
     <br />
-    <!-- <a href="/report/"><button type="button" class="btn btn-outline-inverse btn-lg">Show Report</button></a> -->
 
     <div class="row">
       <div class="col-sm-4"></div>
@@ -20,7 +19,11 @@
       <div class="col-sm-4"></div>
       <div class="col-sm-4">
         <form action="/sync/" method="post">
-          <button type="submit" class="btn btn-success btn-lg btn-block">Sync AWS</button>
+          {% if sync_initiated %}
+            <button type="submit" class="btn btn-success btn-lg btn-block" disabled="disabled">AWS Sync Initiated</button>
+          {% else %}
+            <button type="submit" class="btn btn-success btn-lg btn-block">Sync AWS</button>
+          {% endif %}
         </form>
       </div>
     </div>

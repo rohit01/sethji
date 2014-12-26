@@ -13,11 +13,33 @@ class RedisHandler(object):
             port = 6379
         self.connection = redis.Redis(host=host, port=port, password=password,
             socket_timeout=timeout)
-        self.instance_hash_prefix = 'aws:ec2:instance'       ## Suffix: region, instance id
-        self.elb_hash_prefix = 'aws:ec2:elb'                 ## Suffix: region, elb name
-        self.elastic_ip_hash_prefix = 'aws:ec2:elastic_ip'   ## Suffix: ip_address
-        self.index_prefix = 'aws:index'                      ## Suffix: index_item
-        self.all_tags_hash = 'unbrella:indexed_tags'         ## No Suffix
+        self.instance_hash_prefix = 'aws:ec2:instance'          ## Suffix: region, instance id
+        self.elb_hash_prefix = 'aws:ec2:elb'                    ## Suffix: region, elb name
+        self.elastic_ip_hash_prefix = 'aws:ec2:elastic_ip'      ## Suffix: ip_address
+        self.index_prefix = 'aws:index'                         ## Suffix: index_item
+        self.all_tags_hash = 'unbrella:indexed_tags'            ## No Suffix
+        self.sync_lock_hash = 'unbrella:sync_lock'              ## No Suffix
+        self.last_sync_time_hash = 'unbrella:last_sync_time'    ## No Suffix
+
+
+    def set_last_sync_time(self):
+        time_now = int(round(time.time()))
+        return self.connection.set(self.last_sync_time_hash, time_now)
+
+
+    def get_last_sync_time(self):
+        return self.connection.get(self.last_sync_time_hash)
+
+
+    def set_sync_lock(self, timeout=None):
+        if (not timeout) or (timeout <= 0):
+            return self.connection.delete(self.sync_lock_hash)
+        time_now = int(round(time.time()))
+        return self.connection.set(self.sync_lock_hash, time_now, ex=timeout)
+
+
+    def get_sync_lock(self):
+        return self.connection.get(self.sync_lock_hash)
 
 
     def save_instance_details(self, item_details):

@@ -4,6 +4,7 @@
 from umbrella.model.report import TagReport
 from flask import Blueprint, render_template, redirect, url_for, request
 from umbrella.util import pretty_date
+from umbrella.views.account import requires_login
 import time
 
 
@@ -12,6 +13,7 @@ DEFAULT_REPORT = 'Owner'
 
 
 @mod.route("/")
+@requires_login
 def index():
     reports = TagReport()
     tag_keys = reports.get_tags_info().keys()
@@ -23,6 +25,7 @@ def index():
 
 
 @mod.route("/<tag_name>")
+@requires_login
 def report(tag_name):
     reports = TagReport()
     tag_keys = reports.get_tags_info().keys()
@@ -37,6 +40,7 @@ def report(tag_name):
     )
 
 @mod.route("/instance/<region>/<instance_id>")
+@requires_login
 def instance_details(region, instance_id):
     friendly_names = {
         'zone': 'Zone',
@@ -75,6 +79,7 @@ def instance_details(region, instance_id):
 
 
 @mod.route("/elb/<region>/<elb_name>")
+@requires_login
 def elb_details(region, elb_name):
     friendly_names = {
         'elb_name': 'ELB Name',

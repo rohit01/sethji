@@ -29,7 +29,22 @@ class SyncAws(object):
         self.sync_timeout = app.config.get('SYNC_TIMEOUT')
 
 
+    def background_sync(self):
+        gevent.spawn_raw(self.sync)
+
+
+    def get_last_sync_time(self):
+        last_sync_time = self.redis_handler.get_last_sync_time()
+        if last_sync_time:
+            return int(last_sync_time)
+        return 0
+
+
     def sync(self):
+        sync_lock = self.redis_handler.get_sync_lock()
+        if sync_lock:
+            return
+        self.redis_handler.set_sync_lock(timeout=self.sync_timeout)
         self.index_keys = []
         thread_list = self.sync_ec2()
         print 'Sync Started... . . .  .  .   .     .     .'
@@ -39,7 +54,17 @@ class SyncAws(object):
         self.clean_stale_entries()
         print 'Details saved. Indexing records!'
         self.index_records()
+        self.redis_handler.set_sync_lock(timeout=0)
+        self.redis_handler.set_last_sync_time()
         print 'Complete'
+
+
+    def is_sync_in_progress(self):
+        sync_lock = self.redis_handler.get_sync_lock()
+        if sync_lock:
+            return True
+        return False
+
 
     def sync_ec2(self):
         if (self.regions is None) or (self.regions == 'all'):

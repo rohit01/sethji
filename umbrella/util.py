@@ -1,4 +1,16 @@
 import datetime
+import re
+
+
+def validate_email(email, email_regex_csv):
+    regex_list = [e.strip() for e in email_regex_csv.split(',')]
+    for user_regex in regex_list:
+        ## Only * is allowed in user email regex
+        match_regex = re.escape(user_regex)
+        match_regex = "^%s$" % match_regex.replace('\\*', '.*')
+        if re.match(match_regex, email):
+            return True
+    return False
 
 
 def convert_none_into_blank_values(details):
