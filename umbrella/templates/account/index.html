@@ -3,6 +3,15 @@
 {% block title %}Account{% endblock %}
 
 {% block body %}
+  {% for message in get_flashed_messages() %}
+    <div class="alert alert-info alert-dismissible" role="alert" align="center">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <strong>{{ message }}</strong>
+    </div>
+  {% endfor %}
+
   <br />
   <div class="row">
     <div class="col-sm-4"></div>

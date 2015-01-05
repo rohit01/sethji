@@ -69,15 +69,18 @@ def set_session_user_details():
         app.config['AUTHORIZED_EMAILS'],
     )
     if not authorized:
-        # TODO
-        return "Unauthorized"
+        session.pop('google_token', None)
+        flash(u'Unauthorized access. Please contact admin to get access!')
+        return False
     session['user_details'] = user_details
+    return True
 
 
 @mod.route('/')
 def index():
     if 'google_token' in session:
-        set_session_user_details()
+        if not set_session_user_details():
+            return render_template('account/index.html')
         return redirect(url_for('home'))
     if request.args.get('next', None):
         session['next'] = request.args.get('next', None)
@@ -99,14 +102,16 @@ def logout():
 
 @mod.route('/login/authorized')
 def authorized():
+    next_page = url_for('home')
+    if 'next' in session:
+        next_page = session.pop('next')
     resp = google.authorized_response()
     if resp is None:
-        return 'Access denied: reason=%s error=%s' % (
-            request.args['error_reason'],
-            request.args['error_description']
+        flash(u'Access denied: reason=%s error=%s' % 
+            (request.args['error_reason'], request.args['error_description'])
         )
+        return redirect(url_for('account.index', next=next_page))
     session['google_token'] = (resp['access_token'], '')
-    set_session_user_details()
-    if 'next' in session:
-        return redirect(session.pop('next'))
-    return redirect(url_for('home'))
+    if not set_session_user_details():
+        return redirect(url_for('account.index', next=next_page))
+    return redirect(next_page)
