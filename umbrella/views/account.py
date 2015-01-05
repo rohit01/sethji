@@ -40,7 +40,6 @@ def requires_login(f):
     def decorated_function(*args, **kwargs):
         if app.config['LOGIN_ENABLED']:
             if not session.get('user_details'):
-                flash(u'You need to be signed in for this page.')
                 return redirect(url_for('account.index', next=request.path))
         auto_background_sync()
         return f(*args, **kwargs)
@@ -80,6 +79,8 @@ def index():
     if 'google_token' in session:
         set_session_user_details()
         return redirect(url_for('home'))
+    if request.args.get('next', None):
+        session['next'] = request.args.get('next', None)
     return render_template('account/index.html')
 
 
@@ -106,6 +107,6 @@ def authorized():
         )
     session['google_token'] = (resp['access_token'], '')
     set_session_user_details()
+    if 'next' in session:
+        return redirect(session.pop('next'))
     return redirect(url_for('home'))
-
-

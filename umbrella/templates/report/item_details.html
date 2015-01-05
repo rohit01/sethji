@@ -1,16 +1,16 @@
 {% extends "layout.html" %}
-{% block title %}Report - {{ selected_tag }}{% endblock %}
+{% block title %}{{ page_meta['title'] }}{% endblock %}
 
 {% block body %}
 
-  {% if instance_details %}
-    <h2 align="center">ELB Details</h2>
+  {% if item_details %}
+    <h2 align="center">{{ page_meta['name'] }}</h2>
     <table class="table table-bordered table-striped">
       <tr class="info">
           <td><b>Property</b></td>
           <td><b>Value</b></td>
       </tr>
-      {% for key, value in instance_details.items() %}
+      {% for key, value in item_details.items() %}
         {% if key != 'tags' %}
           <tr>
               <td>{{ key }}</td>
@@ -20,13 +20,13 @@
       {% endfor %}
     </table>
 
-    {% if 'tags' in instance_details %}
+    {% if 'tags' in item_details %}
       <table class="table table-bordered table-striped">
         <tr class="info">
           <td><b>Tags</b></td>
           <td></td>
         </tr>
-        {% for key, value in instance_details['tags'].items() %}
+        {% for key, value in item_details['tags'].items() %}
           <tr>
               <td>{{ key }}</td>
               <td>{{ value }}</td>
@@ -35,7 +35,7 @@
       </table>
     {% endif %}
   {% else %}
-    <h2 align="center">Instance not Found!</h2>
+    <h2 align="center">{{ page_meta['404'] }}</h2>
   {% endif %}
 
   <br />

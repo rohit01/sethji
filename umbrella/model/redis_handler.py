@@ -55,6 +55,11 @@ class RedisHandler(object):
         return self.connection.hgetall(hash_key)
 
 
+    def get_elastic_ip_details(self, elastic_ip):
+        hash_key = "%s:%s" % (self.elastic_ip_hash_prefix, elastic_ip)
+        return self.connection.hgetall(hash_key)
+
+
     def add_instance_detail(self, region, instance_id, key, value):
         hash_key = "%s:%s:%s" % (self.instance_hash_prefix, region,
                                  instance_id)

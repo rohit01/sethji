@@ -2,30 +2,6 @@
 {% block title %}Report - {{ selected_tag }}{% endblock %}
 
 {% block body %}
-  <div class="row">
-    <div class="col-sm-6"><h2 align="right">Report based on</h2></div>
-    <div class="col-sm-6">
-    <form>
-      <div class="dropdown">
-        <br />
-        <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
-          {{selected_tag}}
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-center" role="menu" aria-labelledby="dropdownMenu1">
-          <li role="presentation" class="disabled"><a role="menuitem" tabindex="-1">{{ selected_tag }}</a></li>
-          <li role="presentation" class="divider"></li>
-          {% for tag_name in tag_keys %}
-            {% if tag_name != selected_tag %}
-              <li role="presentation"><a role="menuitem" tabindex="-1" href="/report/{{ tag_name }}">{{ tag_name }}</a></li>
-            {% endif %}
-          {% endfor %}
-        </ul>
-      </div>
-    </form>
-    </div>
-  </div>
-
   {% if tag_resources.get(selected_tag, {}).get('instance') %}
   <h2>EC2 Instances</h2>
   <table class="table table-bordered table-striped">
@@ -84,7 +60,7 @@
     </tr>
     {% for details in tag_resources.get(selected_tag, {}).get('elastic_ip', []) %}
     <tr>
-        <td>{{ details.get('elastic_ip', '-') }}</td>
+        <td><a href="/report/elastic_ip/{{ details.get('elastic_ip', '-') }}">{{ details.get('elastic_ip', '-') }}</a></td>
         <td>{{ details.get('instance_id', '') }}</td>
         <td>{{ details.get('region', '-') }}</td>
     </tr>
@@ -146,7 +122,7 @@
     </tr>
     {% for details in tag_resources.get('--NOT-TRACKED--', {}).get('elastic_ip', []) %}
     <tr>
-        <td>{{ details.get('elastic_ip', '-') }}</td>
+        <td><a href="/report/elastic_ip/{{ details.get('elastic_ip', '-') }}">{{ details.get('elastic_ip', '-') }}</a></td>
         <td>{{ details.get('instance_id', '') }}</td>
         <td>{{ details.get('region', '-') }}</td>
     </tr>

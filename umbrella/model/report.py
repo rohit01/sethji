@@ -73,3 +73,7 @@ class TagReport(object):
 
     def get_elb_details(self, region, elb_name):
         return self.redis_handler.get_elb_details(region, elb_name)
+
+
+    def get_elastic_ip_details(self, elastic_ip):
+        return self.redis_handler.get_elastic_ip_details(elastic_ip)

@@ -12,6 +12,25 @@ mod = Blueprint('report', __name__, url_prefix='/report')
 DEFAULT_REPORT = 'Owner'
 
 
+def organize_details(item_details, friendly_names={}):
+    tags = {}
+    for tag_name in item_details.get('tag_keys', '').split(','):
+        if not tag_name:
+            continue
+        if item_details.get('tag:%s' % tag_name):
+            tags[tag_name] = item_details.pop('tag:%s' % tag_name)
+    if item_details.get('tag_keys'):
+        item_details.pop('tag_keys')
+        item_details['tags'] = tags
+    if item_details.get('timestamp'):
+        time_now = int(round(time.time()))
+        check_time = int(item_details.pop('timestamp'))
+        item_details['Last checked'] = pretty_date(check_time)
+    for k, v in friendly_names.items():
+        if k in item_details:
+            item_details[v] = item_details.pop(k)
+
+
 @mod.route("/")
 @requires_login
 def index():
@@ -39,6 +58,7 @@ def report(tag_name):
         tag_resources=tag_resources,
     )
 
+
 @mod.route("/instance/<region>/<instance_id>")
 @requires_login
 def instance_details(region, instance_id):
@@ -54,27 +74,18 @@ def instance_details(region, instance_id):
         'ip_address': 'IP Address',
         'instance_elb_names': 'ELB Name(s)',
     }
+    page_meta = {
+        'title': "Instance details - %s" % instance_id,
+        'name': "EC2 instance details",
+        '404': "Instance not found!",
+    }
     reports = TagReport()
     details = reports.get_instance_details(region, instance_id)
-    tags = {}
-    for tag_name in details.get('tag_keys', '').split(','):
-        if not tag_name:
-            continue
-        if details.get('tag:%s' % tag_name):
-            tags[tag_name] = details.pop('tag:%s' % tag_name)
-    if details.get('tag_keys'):
-        details.pop('tag_keys')
-        details['tags'] = tags
-    if details.get('timestamp'):
-        time_now = int(round(time.time()))
-        check_time = int(details.pop('timestamp'))
-        details['Last checked'] = pretty_date(check_time)
-    for k, v in friendly_names.items():
-        if k in details:
-            details[v] = details.pop(k)
+    organize_details(details, friendly_names)
     return render_template(
-        'report/instance_details.html',
-        instance_details=details
+        'report/item_details.html',
+        item_details=details,
+        page_meta=page_meta,
     )
 
 
@@ -87,27 +98,41 @@ def elb_details(region, elb_name):
         'elb_dns': 'DNS',
         'elb_instances': 'Instances',
     }
+    page_meta = {
+        'title': "ELB details - %s" % elb_name,
+        'name': "Elastic load balancer details",
+        '404': "Elastic load balancer not found!",
+    }
     reports = TagReport()
     details = reports.get_elb_details(region, elb_name)
-    tags = {}
-    for tag_name in details.get('tag_keys', '').split(','):
-        if not tag_name:
-            continue
-        if details.get('tag:%s' % tag_name):
-            tags[tag_name] = details.pop('tag:%s' % tag_name)
-    if details.get('tag_keys'):
-        details.pop('tag_keys')
-        details['tags'] = tags
-    if details.get('timestamp'):
-        time_now = int(round(time.time()))
-        check_time = int(details.pop('timestamp'))
-        details['Last checked'] = pretty_date(check_time)
+    organize_details(details, friendly_names)
     if 'elb_instances' in details:
         details['elb_instances'] = details['elb_instances'].replace(',', ', ')
-    for k, v in friendly_names.items():
-        if k in details:
-            details[v] = details.pop(k)
     return render_template(
-        'report/elb_details.html',
-        instance_details=details
+        'report/item_details.html',
+        item_details=details,
+        page_meta=page_meta,
+    )
+
+
+@mod.route("/elastic_ip/<elastic_ip>")
+@requires_login
+def elastic_ip_details(elastic_ip):
+    friendly_names = {
+        'region': 'Region',
+        'elastic_ip': 'Elastic IP',
+        'instance_id': 'Instance ID',
+    }
+    page_meta = {
+        'title': "Elastic IP details - %s" % elastic_ip,
+        'name': "Elastic IP details",
+        '404': "Elastic IP Not Found!",
+    }
+    reports = TagReport()
+    details = reports.get_elastic_ip_details(elastic_ip)
+    organize_details(details, friendly_names)
+    return render_template(
+        'report/item_details.html',
+        item_details=details,
+        page_meta=page_meta,
     )
