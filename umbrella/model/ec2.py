@@ -40,6 +40,19 @@ class Ec2Handler(object):
         details['ec2_dns'] = instance.dns_name
         details['ec2_private_dns'] = instance.private_dns_name
         details['state'] = instance.state
+        details['architecture'] = instance.architecture
+        details['launch_time'] = instance.launch_time
+        details['ebs_optimized'] = instance.ebs_optimized
+        details['vpc_id'] = instance.vpc_id
+        details['root_device_type'] = instance.root_device_type
+        for _, volume in instance.block_device_mapping.items():
+            if not volume.volume_id:
+                continue
+            if details.get('ebs_ids'):
+                details['ebs_ids'] = "%s,%s" % (details.get('ebs_ids'),
+                                                volume.volume_id)
+            else:
+                details['ebs_ids'] = volume.volume_id
         tag_keys = []
         for k, v in instance.tags.items():
             k, v = k.strip(), v.strip()
@@ -65,6 +78,9 @@ class Ec2Handler(object):
         details['elb_name'] = elb.name
         details['region'] = elb.connection.region.name
         details['elb_dns'] = elb.dns_name
+        details['vpc_id'] = elb.vpc_id
+        details['created_time'] = elb.created_time
+        details['subnets'] = ','.join(elb.subnets)
         details['elb_instances'] = ','.join(['%s %s' % (k, v)
                                          for k, v in instance_details.items()])
         details = util.convert_none_into_blank_values(details)
@@ -77,5 +93,6 @@ class Ec2Handler(object):
         details = {
             'elastic_ip': elastic_ip.public_ip,
             'instance_id': elastic_ip.instance_id,
+            'region': elastic_ip.region.name,
         }
         return util.convert_none_into_blank_values(details)

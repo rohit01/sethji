@@ -75,6 +75,8 @@ class SyncAws(object):
         for region in region_list:
             thread = gevent.spawn(self.sync_ec2_instances, region)
             thread_list.append(thread)
+        gevent.sleep(2)
+        for region in region_list:
             thread = gevent.spawn(self.sync_ec2_elbs, region)
             thread_list.append(thread)
             thread = gevent.spawn(self.sync_elastic_ips, region)
@@ -127,6 +129,24 @@ class SyncAws(object):
                     key='instance_elb_names',
                     value=instance_elb_names,
                 )
+                ## Add Instance tags in elb details
+                i_details = self.redis_handler.get_instance_details(
+                    details.get('region'), instance_id)
+                if i_details.get('tag_keys'):
+                    tag_keys = set(i_details.get('tag_keys').split(','))
+                    if details.get('tag_keys'):
+                        old_keys = set(details.get('tag_keys').split(','))
+                        tag_keys.update(old_keys)
+                    details['tag_keys'] = ','.join(tag_keys)
+                    for tag_name in i_details['tag_keys'].split(','):
+                        tag_value = i_details.get('tag:%s' % tag_name, '').strip()
+                        if not tag_value:
+                            continue
+                        tag_value = set(tag_value.split(','))
+                        if details.get('tag:%s' % tag_name):
+                            old_value = set(details.get('tag:%s' % tag_name).split(','))
+                            tag_value.update(old_value)
+                        details['tag:%s' % tag_name] = ','.join(tag_value)
             hash_key, _ = self.redis_handler.save_elb_details(details)
             self.index_keys.append(hash_key)
             if self.expire > 0:
@@ -145,7 +165,17 @@ class SyncAws(object):
         for elastic_ip in elastic_ip_list:
             details = ec2_handler.get_elastic_ip_detail(elastic_ip)
             details['timestamp'] = int(time.time())
-            details['region'] = region
+            if details.get('instance_id'):
+                ## Add Instance tags in Elastic IP details
+                i_details = self.redis_handler.get_instance_details(
+                    region, details.get('instance_id'))
+                if i_details.get('tag_keys'):
+                    details['tag_keys'] = i_details.get('tag_keys')
+                    for tag_name in i_details['tag_keys'].split(','):
+                        tag_value = i_details.get('tag:%s' % tag_name, '').strip()
+                        if not tag_value:
+                            continue
+                        details['tag:%s' % tag_name] = tag_value
             hash_key, _ = self.redis_handler.save_elastic_ip_details(details)
             self.index_keys.append(hash_key)
             if self.expire > 0:
@@ -167,17 +197,17 @@ class SyncAws(object):
             tag_keys = details.get('tag_keys', '').split(',')
             if '' in tag_keys:
                 tag_keys.remove('')
-            for tage_name in tag_keys:
-                tag_value = details.get('tag:%s' % tage_name, '').strip()
+            for tag_name in tag_keys:
+                tag_value = details.get('tag:%s' % tag_name, '').strip()
                 if not tag_value:
                     continue
                 self.save_index(hash_key, tag_value)
-                if indexed_tags.get(tage_name, None):
-                    value_list = indexed_tags[tage_name].split(',')
+                if indexed_tags.get(tag_name, None):
+                    value_list = indexed_tags[tag_name].split(',')
                     value_list.append(tag_value)
-                    indexed_tags[tage_name] = ','.join(set(value_list))
+                    indexed_tags[tag_name] = ','.join(set(value_list))
                 else:
-                    indexed_tags[tage_name] = tag_value
+                    indexed_tags[tag_name] = tag_value
         self.redis_handler.save_indexed_tags(indexed_tags)
 
 

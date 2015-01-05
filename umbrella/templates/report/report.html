@@ -32,12 +32,14 @@
   <h2>Load Balancers (ELB)</h2>
   <table class="table table-bordered table-striped">
     <tr class="info">
+        <td>{{ selected_tag }}</td>
         <td>Name</td>
         <td>No. of instances</td>
         <td>Region</td>
     </tr>
     {% for details in tag_resources.get(selected_tag, {}).get('elb', []) %}
     <tr>
+        <td>{{ details.get('tag:%s' % selected_tag, '-') }}</td>
         <td><a href="/report/elb/{{ details.get('region', '-') }}/{{ details.get('elb_name', '-') }}">{{ details.get('elb_name', '-') }}</a></td>
         {% if details.get('elb_instances', '') == '' %}
           <td>0</td>
@@ -54,12 +56,14 @@
   <h2>Elastic IPs</h2>
   <table class="table table-bordered table-striped">
     <tr class="info">
+        <td>{{ selected_tag }}</td>
         <td>Elastic IP</td>
         <td>Instance ID</td>
         <td>Region</td>
     </tr>
     {% for details in tag_resources.get(selected_tag, {}).get('elastic_ip', []) %}
     <tr>
+        <td>{{ details.get('tag:%s' % selected_tag, '-') }}</td>
         <td><a href="/report/elastic_ip/{{ details.get('elastic_ip', '-') }}">{{ details.get('elastic_ip', '-') }}</a></td>
         <td>{{ details.get('instance_id', '') }}</td>
         <td>{{ details.get('region', '-') }}</td>
