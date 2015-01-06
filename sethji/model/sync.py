@@ -208,7 +208,8 @@ class SyncAws(object):
                     indexed_tags[tag_name] = ','.join(set(value_list))
                 else:
                     indexed_tags[tag_name] = tag_value
-        self.redis_handler.save_indexed_tags(indexed_tags)
+        if indexed_tags:
+            self.redis_handler.save_indexed_tags(indexed_tags)
 
 
     def save_index(self, hash_key, value):
