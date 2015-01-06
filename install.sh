@@ -19,7 +19,7 @@ fi
 
 ##################### Compute rediscloud credentials #####################
 echo "Creating application ${app_name}..."
-if ! heroku create ${app_name} -s cedar --addons rediscloud:25; then
+if ! heroku create ${app_name} -s cedar --addons rediscloud; then
     echo "ERROR: Application create failed. Aborting!"
     exit 1
 fi
