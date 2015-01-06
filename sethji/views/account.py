@@ -38,7 +38,7 @@ if app.config['LOGIN_ENABLED']:
 def requires_login(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if app.config['LOGIN_ENABLED']:
+        if app.config.get('LOGIN_ENABLED'):
             if not session.get('user_details'):
                 return redirect(url_for('account.index', next=request.path))
         auto_background_sync()
