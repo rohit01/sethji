@@ -4,9 +4,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, \
     session, flash, g
 from flask_oauthlib.client import OAuth
-from umbrella import app
-from umbrella.util import validate_email, pretty_date
-from umbrella.model.sync import SyncAws
+from sethji import app
+from sethji.util import validate_email, pretty_date
+from sethji.model.sync import SyncAws
 from functools import wraps
 import time
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
 
-from umbrella.model.sync import SyncAws
-from umbrella.views.account import requires_login
+from sethji.model.sync import SyncAws
+from sethji.views.account import requires_login
 from flask import Blueprint, redirect, url_for, flash
 
 

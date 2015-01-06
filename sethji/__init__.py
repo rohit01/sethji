@@ -15,7 +15,7 @@ if app.config.get('SENTRY_DSN'):
 ALL_RESOURCE_INDEX = '__ALL_RESOURCE_INDEX__'
 
 
-from umbrella.views import sync, report, account
+from sethji.views import sync, report, account
 app.register_blueprint(sync.mod)
 app.register_blueprint(report.mod)
 app.register_blueprint(account.mod)

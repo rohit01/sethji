@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
 
-from umbrella.model.report import TagReport
+from sethji.model.report import TagReport
 from flask import Blueprint, render_template, redirect, url_for, request
-from umbrella.util import pretty_date
-from umbrella.views.account import requires_login
+from sethji.util import pretty_date
+from sethji.views.account import requires_login
 import time
 
 

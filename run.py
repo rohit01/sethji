@@ -5,7 +5,7 @@
 # Author - @rohit01
 # -----------------
 
-from umbrella import app
+from sethji import app
 from config import HOST, PORT, DEBUG
 
 

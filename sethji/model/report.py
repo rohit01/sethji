@@ -5,7 +5,7 @@ import gevent
 import gevent.monkey
 gevent.monkey.patch_all()
 
-from umbrella import app, ALL_RESOURCE_INDEX
+from sethji import app, ALL_RESOURCE_INDEX
 from redis_handler import RedisHandler
 
 

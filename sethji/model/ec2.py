@@ -1,6 +1,6 @@
 import boto.ec2
 import boto.ec2.elb
-import umbrella.util as util
+import sethji.util as util
 
 def get_region_list():
     regions = boto.ec2.get_regions('ec2')
