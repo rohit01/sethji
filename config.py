@@ -33,8 +33,8 @@ REGIONS = os.environ.get('REGIONS', 'all')
 ## Duration for which data is cached
 EXPIRE_DURATION = 2592000                # 30 Days
 
-# ## Sentry for catching exceptions
-# SENTRY_DSN = os.environ.get('SENTRY_DSN', None)
+## Sentry for catching exceptions
+SENTRY_DSN = os.environ.get('SENTRY_DSN', None)
 
 ## Secret key for cookies
 SECRET_KEY = os.urandom(128)

@@ -2,11 +2,16 @@
 #
 
 from flask import Flask, render_template, send_from_directory, redirect, url_for
+from raven.contrib.flask import Sentry
 import os
 
 
 app = Flask(__name__)
 app.config.from_object('config')
+if app.config.get('SENTRY_DSN'):
+    Sentry(app)
+
+
 ALL_RESOURCE_INDEX = '__ALL_RESOURCE_INDEX__'
 
 
