@@ -13,7 +13,7 @@
       </button>
       <ul class="dropdown-menu dropdown-menu-center" role="menu" aria-labelledby="dropdownMenu1">
         {% for tag_name in tag_keys %}
-          <li role="presentation"><a role="menuitem" tabindex="-1" href="/report/{{ tag_name }}">{{ tag_name }}</a></li>
+          <li role="presentation"><a role="menuitem" tabindex="-1" href="{{ url_for('report.report', tag_name=tag_name, tag_value='all') }}">{{ tag_name }}</a></li>
         {% endfor %}
       </ul>
     </div>

@@ -39,23 +39,25 @@ def index():
     tag_keys = reports.get_tags_info().keys()
     redirect_default = request.args.get('redirect', 'true').lower() == 'true'
     if (DEFAULT_REPORT in tag_keys) and redirect_default:
-        return redirect(url_for('report.report', tag_name=DEFAULT_REPORT))
+        return redirect(url_for('report.report', tag_name=DEFAULT_REPORT,
+                        tag_value='all'))
     else:
         return render_template('report/index.html', tag_keys=tag_keys)
 
 
-@mod.route("/<tag_name>")
+@mod.route("/<tag_name>/<tag_value>")
 @requires_login
-def report(tag_name):
+def report(tag_name, tag_value='all'):
     reports = TagReport()
-    tag_keys = reports.get_tags_info().keys()
-    if tag_name not in tag_keys:
+    tags_info = reports.get_tags_info()
+    if tag_name not in tags_info:
         return redirect(url_for('report.index', redirect=False))
-    tag_resources = reports.get_tag_resources(tag_name)
+    tag_resources = reports.get_tag_resources(tag_name, tag_value)
     return render_template(
         'report/report.html',
-        tag_keys=tag_keys,
+        tags_info=tags_info,
         selected_tag=tag_name,
+        selected_tag_value=tag_value,
         tag_resources=tag_resources,
     )
 

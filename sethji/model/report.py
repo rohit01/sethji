@@ -23,29 +23,36 @@ class TagReport(object):
         return self.redis_handler.get_indexed_tags()
 
 
-    def get_tag_resources(self, tag_key):
+    def get_tag_resources(self, tag_key, tag_value=None):
         tags_info = self.get_tags_info()
-        tag_values = tags_info.get(tag_key, '')
+        if (not tag_value) or (tag_value.lower() == 'all'):
+            process_tag_values = tags_info.get(tag_key, '')
+        else:
+            process_tag_values = tag_value
         hash_set = set()
-        for value in tag_values.split(','):
+        for value in process_tag_values.split(','):
             if value.strip():
                 hash_keys = self.redis_handler.get_index(value) or ''
                 if hash_keys:
                     hash_set.update(hash_keys.split(','))
+        # All Hash keys
         all_hash_keys = self.redis_handler.get_index(ALL_RESOURCE_INDEX)
         all_hash_set = set(all_hash_keys.split(','))
+        # Tagged resources
         tag_resources = {
             tag_key: {
                 'instance': [],
                 'elb': [],
                 'elastic_ip': [],
-            },
-            '--NOT-TRACKED--': {
+            }
+        }
+        if (not tag_value) or (tag_value.lower() == 'all'):
+            tag_resources['--NOT-TRACKED--'] = {
                 'instance': [],
                 'elb': [],
                 'elastic_ip': [],
-            },
-        }
+            }
+        # Get details
         for key in all_hash_set:
             if not key.strip():
                 continue
@@ -56,6 +63,8 @@ class TagReport(object):
                 category = tag_key
             else:
                 category = '--NOT-TRACKED--'
+            if category not in tag_resources:
+                continue
             if key.startswith(self.redis_handler.instance_hash_prefix):
                 tag_resources[category]['instance'].append(details)
             elif key.startswith(self.redis_handler.elb_hash_prefix):
