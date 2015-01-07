@@ -14,6 +14,7 @@ class RedisHandler(object):
         self.connection = redis.Redis(host=host, port=port, password=password,
             socket_timeout=timeout)
         self.instance_hash_prefix = 'aws:ec2:instance'          ## Suffix: region, instance id
+        self.ebs_vol_hash_prefix = 'aws:ec2:ebs'                ## Suffix: region, volume id
         self.elb_hash_prefix = 'aws:ec2:elb'                    ## Suffix: region, elb name
         self.elastic_ip_hash_prefix = 'aws:ec2:elastic_ip'      ## Suffix: ip_address
         self.index_prefix = 'aws:index'                         ## Suffix: index_item
@@ -89,6 +90,19 @@ class RedisHandler(object):
 
     def get_elb_details(self, region, elb_name):
         hash_key = "%s:%s:%s" % (self.elb_hash_prefix, region, elb_name)
+        return self.connection.hgetall(hash_key)
+
+
+    def save_ebs_vol_details(self, item_details):
+        hash_key = "%s:%s:%s" % (self.ebs_vol_hash_prefix,
+                                 item_details['region'],
+                                 item_details['volume_id'])
+        status = self.connection.hmset(hash_key, item_details)
+        return (hash_key, status)
+
+
+    def get_ebs_volume_details(self, region, volume_id):
+        hash_key = "%s:%s:%s" % (self.ebs_vol_hash_prefix, region, volume_id)
         return self.connection.hgetall(hash_key)
 
 

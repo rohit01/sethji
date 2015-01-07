@@ -44,6 +44,7 @@ class TagReport(object):
                 'instance': [],
                 'elb': [],
                 'elastic_ip': [],
+                'ebs_volumes': [],
             }
         }
         if (not tag_value) or (tag_value.lower() == 'all'):
@@ -51,6 +52,7 @@ class TagReport(object):
                 'instance': [],
                 'elb': [],
                 'elastic_ip': [],
+                'ebs_volumes': [],
             }
         # Get details
         for key in all_hash_set:
@@ -71,6 +73,8 @@ class TagReport(object):
                 tag_resources[category]['elb'].append(details)
             elif key.startswith(self.redis_handler.elastic_ip_hash_prefix):
                 tag_resources[category]['elastic_ip'].append(details)
+            elif key.startswith(self.redis_handler.ebs_vol_hash_prefix):
+                tag_resources[category]['ebs_volumes'].append(details)
             else:
                 raise Exception("Unable to categorize info: %s" % str(details))
         return tag_resources
@@ -78,6 +82,10 @@ class TagReport(object):
 
     def get_instance_details(self, region, instance_id):
         return self.redis_handler.get_instance_details(region, instance_id)
+
+
+    def get_ebs_volume_details(self, region, volume_id):
+        return self.redis_handler.get_ebs_volume_details(region, volume_id)
 
 
     def get_elb_details(self, region, elb_name):

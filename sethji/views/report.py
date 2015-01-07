@@ -104,6 +104,39 @@ def instance_details(region, instance_id):
     )
 
 
+@mod.route("/ebs_volume/<region>/<volume_id>")
+@requires_login
+def ebs_volume_details(region, volume_id):
+    friendly_names = {
+        'create_time': 'Create Time',
+        'volume_id': 'Volume ID',
+        'iops': 'IOPS',
+        'region': 'Region',
+        'size': 'Size',
+        'snapshot_id': 'Snapshot ID',
+        'status': 'Status',
+        'type': 'Type',
+        'zone': 'Zone',
+    }
+    page_meta = {
+        'title': "EBS volume details - %s" % volume_id,
+        'name': "EBS volume details",
+        '404': "EBS volume not found!",
+    }
+    reports = TagReport()
+    details = reports.get_ebs_volume_details(region, volume_id)
+    if 'create_time' in details:
+        create_time = datetime.strptime(
+            details.get('create_time').split('.')[0], "%Y-%m-%dT%H:%M:%S")
+        details['create_time'] = pretty_date(create_time)
+    organize_details(details, friendly_names)
+    return render_template(
+        'report/item_details.html',
+        item_details=details,
+        page_meta=page_meta,
+    )
+
+
 @mod.route("/elb/<region>/<elb_name>")
 @requires_login
 def elb_details(region, elb_name):
@@ -148,7 +181,7 @@ def elastic_ip_details(elastic_ip):
     page_meta = {
         'title': "Elastic IP details - %s" % elastic_ip,
         'name': "Elastic IP details",
-        '404': "Elastic IP Not Found!",
+        '404': "Elastic IP not found!",
     }
     reports = TagReport()
     details = reports.get_elastic_ip_details(elastic_ip)

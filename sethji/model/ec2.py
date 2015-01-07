@@ -2,6 +2,7 @@ import boto.ec2
 import boto.ec2.elb
 import sethji.util as util
 
+
 def get_region_list():
     regions = boto.ec2.get_regions('ec2')
     return [r.name for r in regions]
@@ -21,6 +22,7 @@ class Ec2Handler(object):
             aws_secret_access_key=apisecret
         )
 
+
     def fetch_all_instances(self):
         reservations = self.connection.get_all_instances()
         instance_list = []
@@ -28,6 +30,7 @@ class Ec2Handler(object):
             for i in r.instances:
                 instance_list.append(i)
         return instance_list
+
 
     def get_instance_details(self, instance):
         details = {}
@@ -60,12 +63,15 @@ class Ec2Handler(object):
                 continue
             details['tag:%s' % k] = v
             tag_keys.append(k)
-        details['tag_keys'] = ','.join(tag_keys)
+        if tag_keys:
+            details['tag_keys'] = ','.join(tag_keys)
         details = util.convert_none_into_blank_values(details)
         return details
 
+
     def fetch_all_elbs(self):
         return self.elb_connection.get_all_load_balancers()
+
 
     def get_elb_details(self, elb):
         ## Get instances with health info
@@ -86,13 +92,43 @@ class Ec2Handler(object):
         details = util.convert_none_into_blank_values(details)
         return details, instance_details.keys()
 
+
     def fetch_elastic_ips(self):
         return self.connection.get_all_addresses()
 
-    def get_elastic_ip_detail(self, elastic_ip):
+
+    def get_elastic_ip_details(self, elastic_ip):
         details = {
             'elastic_ip': elastic_ip.public_ip,
             'instance_id': elastic_ip.instance_id,
             'region': elastic_ip.region.name,
         }
+        return util.convert_none_into_blank_values(details)
+
+
+    def fetch_ebs_volumes(self):
+        return self.connection.get_all_volumes()
+
+
+    def get_ebs_details(self, ebs):
+        details = {
+            'create_time': ebs.create_time,
+            'volume_id': ebs.id,
+            'iops': ebs.iops,
+            'region': ebs.region.name,
+            'size': ebs.size,
+            'snapshot_id': ebs.snapshot_id,
+            'status': ebs.status,
+            'type': ebs.type,
+            'zone': ebs.zone,
+        }
+        tag_keys = []
+        for k, v in ebs.tags.items():
+            k, v = k.strip(), v.strip()
+            if (not k) or (not v):
+                continue
+            details['tag:%s' % k] = v
+            tag_keys.append(k)
+        if tag_keys:
+            details['tag_keys'] = ','.join(tag_keys)
         return util.convert_none_into_blank_values(details)

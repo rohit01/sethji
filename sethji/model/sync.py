@@ -54,8 +54,8 @@ class SyncAws(object):
         self.clean_stale_entries()
         print 'Details saved. Indexing records!'
         self.index_records()
-        self.redis_handler.set_sync_lock(timeout=0)
         self.redis_handler.set_last_sync_time()
+        self.redis_handler.set_sync_lock(timeout=0)
         print 'Complete'
 
 
@@ -74,6 +74,8 @@ class SyncAws(object):
         thread_list = []
         for region in region_list:
             thread = gevent.spawn(self.sync_ec2_instances, region)
+            thread_list.append(thread)
+            thread = gevent.spawn(self.sync_ebs_volumes, region)
             thread_list.append(thread)
         gevent.sleep(2)
         for region in region_list:
@@ -163,7 +165,7 @@ class SyncAws(object):
                   % (region, e.message)
             return
         for elastic_ip in elastic_ip_list:
-            details = ec2_handler.get_elastic_ip_detail(elastic_ip)
+            details = ec2_handler.get_elastic_ip_details(elastic_ip)
             details['timestamp'] = int(time.time())
             if details.get('instance_id'):
                 ## Add Instance tags in Elastic IP details
@@ -181,6 +183,24 @@ class SyncAws(object):
             if self.expire > 0:
                 self.redis_handler.expire(hash_key, self.expire)
         print "Elastic ip sync complete for ec2 region: %s" % region
+
+
+    def sync_ebs_volumes(self, region):
+        ec2_handler = Ec2Handler(self.apikey, self.apisecret, region)
+        try:
+            ebs_volume_list = ec2_handler.fetch_ebs_volumes()
+        except Exception as e:
+            print "Exception for EBS Volumes in Region: %s, message: %s" \
+                  % (region, e.message)
+            return
+        for ebs_volume in ebs_volume_list:
+            details = ec2_handler.get_ebs_details(ebs_volume)
+            details['timestamp'] = int(time.time())
+            hash_key, _ = self.redis_handler.save_ebs_vol_details(details)
+            self.index_keys.append(hash_key)
+            if self.expire > 0:
+                self.redis_handler.expire(hash_key, self.expire)
+        print "EBS volume sync complete for ec2 region: %s" % region
 
 
     def clean_stale_entries(self):
