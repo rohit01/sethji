@@ -53,24 +53,26 @@
                 {% endfor %}
               </ul>
             </li>
-          {% endif %}
-
-          <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{% if selected_tag_value %}{{ selected_tag_value }}{% else %}--select--{% endif %}<span class="caret"></span></a>
-            <ul class="dropdown-menu" role="menu">
-              {% if selected_tag_value %}
-                <li class="disabled"><a href="#">{{ selected_tag_value }}</a></li>
-              {% endif %}
-              <li class="divider"></li>
-              {% if selected_tag in tags_info %}
-                {% for tag_value in tags_info[selected_tag].split(',') %}
-                  {% if tag_value != selected_tag_value %}
-                    <li><a href="{{ url_for('report.report', tag_name=selected_tag, tag_value=tag_value) }}">{{ tag_value }}</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{% if selected_tag_value %}{{ selected_tag_value }}{% else %}--select--{% endif %}<span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                {% if selected_tag_value %}
+                  <li class="disabled"><a href="#">{{ selected_tag_value }}</a></li>
+                {% endif %}
+                <li class="divider"></li>
+                {% if selected_tag in tags_info %}
+                  {% if selected_tag_value != 'all' %}
+                      <li><a href="{{ url_for('report.report', tag_name=selected_tag, tag_value='all') }}">all</a></li>
                   {% endif %}
-                {% endfor %}
-              {% endif %}
-            </ul>
-          </li>
+                  {% for tag_value in tags_info[selected_tag].split(',') %}
+                    {% if tag_value != selected_tag_value %}
+                      <li><a href="{{ url_for('report.report', tag_name=selected_tag, tag_value=tag_value) }}">{{ tag_value }}</a></li>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              </ul>
+            </li>
+          {% endif %}
 
           {% if 'user_details' in session %}
             <li><a href="/account/logout">Logout</a></li>
