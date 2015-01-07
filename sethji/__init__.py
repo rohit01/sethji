@@ -27,6 +27,12 @@ def not_found(error):
     return render_template('404.html'), 404
 
 
+@app.errorhandler(405)
+@account.requires_login
+def method_not_allowed(error):
+    return render_template('404.html'), 404
+
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(
