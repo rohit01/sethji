@@ -11,6 +11,7 @@
           <td>Name</td>
         {% endif %}
         <td>Instance ID</td>
+        <td>State</td>
         <td>Instance Type</td>
         <td>Region</td>
     </tr>
@@ -21,6 +22,7 @@
           <td>{{ details.get('tag:Name', '-') }}</td>
         {% endif %}
         <td><a href="{{ url_for('report.instance_details', region=details.get('region', '-'), instance_id=details.get('instance_id', '-')) }}">{{ details.get('instance_id', '-') }}</a></td>
+        <td>{{ details.get('state', '-') }}</td>
         <td>{{ details.get('instance_type', '-') }}</td>
         <td>{{ details.get('region', '-') }}</td>
     </tr>
@@ -86,6 +88,7 @@
     <tr class="info">
         <td>Name</td>
         <td>Instance ID</td>
+        <td>State</td>
         <td>Instance Type</td>
         <td>Region</td>
     </tr>
@@ -93,6 +96,7 @@
     <tr>
         <td>{{ details.get('tag:Name', '-') }}</td>
         <td><a href="{{ url_for('report.instance_details', region=details.get('region', '-'), instance_id=details.get('instance_id', '-')) }}">{{ details.get('instance_id', '-') }}</a></td>
+        <td>{{ details.get('state', '-') }}</td>
         <td>{{ details.get('instance_type', '-') }}</td>
         <td>{{ details.get('region', '-') }}</td>
     </tr>
