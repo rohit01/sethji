@@ -5,6 +5,7 @@ from sethji.model.report import TagReport
 from flask import Blueprint, render_template, redirect, url_for, request
 from sethji.util import pretty_date
 from sethji.views.account import requires_login
+from datetime import datetime
 import time
 
 
@@ -73,6 +74,12 @@ def instance_details(region, instance_id):
         'private_ip_address': 'Private IP Address',
         'ip_address': 'IP Address',
         'instance_elb_names': 'ELB Name(s)',
+        'root_device_type': 'Root Device Type',
+        'ebs_optimized': 'EBS Optimized',
+        'ebs_ids': 'EBS IDs',
+        'launch_time': 'Launch Time',
+        'architecture': 'Architecture',
+        'vpc_id': 'VPC ID',
     }
     page_meta = {
         'title': "Instance details - %s" % instance_id,
@@ -81,6 +88,12 @@ def instance_details(region, instance_id):
     }
     reports = TagReport()
     details = reports.get_instance_details(region, instance_id)
+    if details.get('ebs_ids'):
+        details['ebs_ids'] = details['ebs_ids'].replace(',', ', ')
+    if details.get('launch_time'):
+        launch_time = datetime.strptime(
+            details.get('launch_time').split('.')[0], "%Y-%m-%dT%H:%M:%S")
+        details['launch_time'] = pretty_date(launch_time)
     organize_details(details, friendly_names)
     return render_template(
         'report/item_details.html',
@@ -97,6 +110,9 @@ def elb_details(region, elb_name):
         'region': 'Region',
         'elb_dns': 'DNS',
         'elb_instances': 'Instances',
+        'subnets': 'Subnets',
+        'created_time': 'Created Time',
+        'vpc_id': 'VPC ID',
     }
     page_meta = {
         'title': "ELB details - %s" % elb_name,
@@ -105,9 +121,13 @@ def elb_details(region, elb_name):
     }
     reports = TagReport()
     details = reports.get_elb_details(region, elb_name)
-    organize_details(details, friendly_names)
     if 'elb_instances' in details:
         details['elb_instances'] = details['elb_instances'].replace(',', ', ')
+    if 'created_time' in details:
+        created_time = datetime.strptime(
+            details.get('created_time').split('.')[0], "%Y-%m-%dT%H:%M:%S")
+        details['created_time'] = pretty_date(created_time)
+    organize_details(details, friendly_names)
     return render_template(
         'report/item_details.html',
         item_details=details,
