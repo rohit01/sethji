@@ -3,7 +3,7 @@
 
 from sethji.model.sync import SyncAws
 from sethji.views.account import requires_login
-from flask import Blueprint, redirect, url_for, flash
+from flask import Blueprint, redirect, url_for, flash, request
 
 
 mod = Blueprint('sync', __name__, url_prefix='/sync')
@@ -15,7 +15,7 @@ def sync():
     sync_aws = SyncAws()
     sync_aws.background_sync()
     flash(u'AWS Sync Initiated')
-    return redirect(url_for('home'))
+    return redirect(request.path)
 
 
 def is_sync_in_progress():
