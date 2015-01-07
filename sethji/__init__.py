@@ -22,6 +22,7 @@ app.register_blueprint(account.mod)
 
 
 @app.errorhandler(404)
+@account.requires_login
 def not_found(error):
     return render_template('404.html'), 404
 
