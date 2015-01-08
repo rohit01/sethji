@@ -137,7 +137,7 @@ def welcome_joke(first_name, last_name):
         resp = requests.get(url, timeout=2)
         if 200 <= resp.status_code < 300:
             content = json.loads(resp.text)
-            message = content.get(u'value', {}).get(u'joke')
+            message = content.get('value', {}).get('joke')
             if not message:
                 message = 'Welcome %s!' % first_name
     except Exception:
