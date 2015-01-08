@@ -13,8 +13,26 @@
       {% for key, value in item_details.items() %}
         {% if key != 'tags' %}
           <tr>
-              <td>{{ key }}</td>
+            <td>{{ key }}</td>
+            <!-- Generate link, if applicable -->
+            {% if item_details.get('Region', '') != '' %}
+              {% if key == 'Volume ID' %}
+                <td><a href="{{ url_for('report.ebs_volume_details', region=item_details.get('Region', '-'), volume_id=value) }}">{{ value }}</a></td>
+              {% elif key == 'Instance ID' %}
+                <td><a href="{{ url_for('report.instance_details', region=item_details.get('Region', '-'), instance_id=value) }}">{{ value }}</a></td>
+              {% elif key == 'EBS Volumes' %}
+                <td>
+                  {% for volume_id in value.split(',') %}
+                    {% if volume_id != value.split(',')[0] %}, {% endif %}
+                    <a href="{{ url_for('report.ebs_volume_details', region=item_details.get('Region', '-'), volume_id=volume_id) }}">{{ volume_id }}</a>
+                  {% endfor %}
+                </td>
+              {% else %}
+                <td>{{ value }}</td>
+              {% endif %}
+            {% else %}
               <td>{{ value }}</td>
+            {% endif %}
           </tr>
         {% endif %}
       {% endfor %}
@@ -28,8 +46,8 @@
         </tr>
         {% for key, value in item_details['tags'].items() %}
           <tr>
-              <td>{{ key }}</td>
-              <td>{{ value }}</td>
+            <td><a href="{{ url_for('report.report', tag_name=key, tag_value='all') }}">{{ key }}</a></td>
+            <td><a href="{{ url_for('report.report', tag_name=key, tag_value=value) }}">{{ value }}</a></td>
           </tr>
         {% endfor %}
       </table>

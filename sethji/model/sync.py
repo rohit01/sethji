@@ -77,8 +77,6 @@ class SyncAws(object):
             thread_list.append(thread)
             thread = gevent.spawn(self.sync_ebs_volumes, region)
             thread_list.append(thread)
-        gevent.sleep(2)
-        for region in region_list:
             thread = gevent.spawn(self.sync_ec2_elbs, region)
             thread_list.append(thread)
             thread = gevent.spawn(self.sync_elastic_ips, region)
@@ -96,12 +94,29 @@ class SyncAws(object):
         for instance in instance_list:
             instance_details = ec2_handler.get_instance_details(instance)
             instance_details['timestamp'] = int(time.time())
+            if instance_details.get('ebs_ids'):
+                for volume_id in instance_details.get('ebs_ids').split(','):
+                    ebs_details = self.redis_handler.get_ebs_volume_details(
+                        region, volume_id)
+                    if not ebs_details:
+                        continue
+                    ebs_details['instance_id'] = instance_details['instance_id']
+                    if not instance_details.get('tag_keys'):
+                        continue
+                    ebs_details['tag_keys'] = instance_details.get('tag_keys')
+                    for tag_name in instance_details['tag_keys'].split(','):
+                        tag_value = instance_details.get('tag:%s' % tag_name, '').strip()
+                        if not tag_value:
+                            continue
+                        ebs_details['tag:%s' % tag_name] = tag_value
+                    self.redis_handler.save_ebs_vol_details(ebs_details)
             hash_key, _ = self.redis_handler.save_instance_details(
                 instance_details)
             self.index_keys.append(hash_key)
             if self.expire > 0:
                 self.redis_handler.expire(hash_key, self.expire)
         print "Instance sync complete for ec2 region: %s" % region
+
 
     def sync_ec2_elbs(self, region):
         ec2_handler = Ec2Handler(self.apikey, self.apisecret, region)

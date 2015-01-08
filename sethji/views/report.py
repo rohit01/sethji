@@ -78,7 +78,7 @@ def instance_details(region, instance_id):
         'instance_elb_names': 'ELB Name(s)',
         'root_device_type': 'Root Device Type',
         'ebs_optimized': 'EBS Optimized',
-        'ebs_ids': 'EBS IDs',
+        'ebs_ids': 'EBS Volumes',
         'launch_time': 'Launch Time',
         'architecture': 'Architecture',
         'vpc_id': 'VPC ID',
@@ -90,8 +90,6 @@ def instance_details(region, instance_id):
     }
     reports = TagReport()
     details = reports.get_instance_details(region, instance_id)
-    if details.get('ebs_ids'):
-        details['ebs_ids'] = details['ebs_ids'].replace(',', ', ')
     if details.get('launch_time'):
         launch_time = datetime.strptime(
             details.get('launch_time').split('.')[0], "%Y-%m-%dT%H:%M:%S")
@@ -110,9 +108,10 @@ def ebs_volume_details(region, volume_id):
     friendly_names = {
         'create_time': 'Create Time',
         'volume_id': 'Volume ID',
+        'instance_id': 'Instance ID',
         'iops': 'IOPS',
         'region': 'Region',
-        'size': 'Size',
+        'size': 'Size (in GB)',
         'snapshot_id': 'Snapshot ID',
         'status': 'Status',
         'type': 'Type',
