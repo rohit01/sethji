@@ -27,6 +27,13 @@
                     <a href="{{ url_for('report.ebs_volume_details', region=item_details.get('Region', '-'), volume_id=volume_id) }}">{{ volume_id }}</a>
                   {% endfor %}
                 </td>
+              {% elif key == 'ELB Name(s)' %}
+                <td>
+                  {% for elb_name in value.split(',') %}
+                    {% if elb_name != value.split(',')[0] %}, {% endif %}
+                    <a href="{{ url_for('report.elb_details', region=item_details.get('Region', '-'), elb_name=elb_name) }}">{{ elb_name }}</a>
+                  {% endfor %}
+                </td>
               {% else %}
                 <td>{{ value }}</td>
               {% endif %}
