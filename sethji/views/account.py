@@ -9,6 +9,9 @@ from sethji.util import validate_email, pretty_date
 from sethji.model.sync import SyncAws
 from functools import wraps
 import time
+import requests
+import json
+from urllib import urlencode
 
 
 mod = Blueprint('account', __name__, url_prefix='/account')
@@ -114,4 +117,29 @@ def authorized():
     session['google_token'] = (resp['access_token'], '')
     if not set_session_user_details():
         return redirect(url_for('account.index', next=next_page))
+    if session.get('user_details', {}).get('given_name'):
+        first_name = session.get('user_details', {}).get('given_name')
+        last_name = session.get('user_details', {}).get('family_name')
+        flash("Welcome! %s" % welcome_joke(first_name, last_name))
     return redirect(next_page)
+
+
+def welcome_joke(first_name, last_name):
+    params = {
+        'limitTo': '[nerdy]',
+    }
+    if first_name:
+        params['firstName'] = first_name
+    if last_name:
+        params['lastName'] = last_name
+    url = "http://api.icndb.com/jokes/random?%s" % urlencode(params)
+    try:
+        resp = requests.get(url, timeout=2)
+        if 200 <= resp.status_code < 300:
+            content = json.loads(resp.text)
+            message = content.get(u'value', {}).get(u'joke')
+            if not message:
+                message = 'Welcome %s!' % first_name
+    except Exception:
+        message = 'Welcome %s!' % first_name
+    return message
