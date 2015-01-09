@@ -51,18 +51,15 @@ def requires_login(f):
 
 def auto_background_sync():
     sync_aws = SyncAws()
-    g.is_syncing = sync_aws.is_sync_in_progress()
-    g.last_sync_time = sync_aws.get_last_sync_time()
-    if g.last_sync_time:
-        g.last_update = pretty_date(g.last_sync_time)
+    last_sync_time = sync_aws.get_last_sync_time()
+    if last_sync_time:
+        g.last_update = pretty_date(last_sync_time)
     else:
         g.last_update = 'Never'
     timeout = app.config.get('AUTO_REFRESH_TIMEOUT')
     if timeout:
-        time_now = int(round(time.time()))
-        if (time_now - g.last_sync_time) > timeout:
+        if (int(round(time.time())) - last_sync_time) > timeout:
             sync_aws.background_sync()
-            g.is_syncing = sync_aws.is_sync_in_progress()
 
 
 def set_session_user_details():

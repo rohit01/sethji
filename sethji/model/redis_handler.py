@@ -9,14 +9,20 @@ import redis
 import time
 
 
+connection_pool = None
+
+
 class RedisHandler(object):
     def __init__(self, host=None, port=None, password=None, idle_timeout=None):
+        global connection_pool
         if host is None:
             host = '127.0.0.1'
         if port is None:
             port = 6379
-        self.connection = redis.StrictRedis(host=host, port=port,
-                                            password=password)
+        if not connection_pool:
+            connection_pool = redis.ConnectionPool(host=host, port=port,
+                                                   password=password)
+        self.connection = redis.StrictRedis(connection_pool=connection_pool)
         self.idle_timeout = idle_timeout
         self.instance_hash_prefix = 'aws:ec2:instance'          ## Suffix: region, instance id
         self.ebs_vol_hash_prefix = 'aws:ec2:ebs'                ## Suffix: region, volume id
@@ -27,7 +33,7 @@ class RedisHandler(object):
         self.sync_lock_hash = 'sethji:sync_lock'                ## No Suffix
         self.last_sync_time_hash = 'sethji:last_sync_time'      ## No Suffix
         self.object_cache_hash = 'sethji:object_cache'          ## object path
-        gevent.spawn_raw(self._close_idle_connections)
+        # gevent.spawn_raw(self._close_idle_connections)
 
 
     def get_cached_object(self, path):
@@ -185,4 +191,8 @@ class RedisHandler(object):
         for idle_time in idle_time_list:
             if idle_time < self.idle_timeout:
                 break
-            self.connection.client_kill(idle_connection_mapping[idle_time])
+            try:
+                self.connection.client_kill(idle_connection_mapping[idle_time])
+            except Exception as e:
+                print "Exception while closing idle redis connection. " \
+                    "Message: %s" % str(e.message)

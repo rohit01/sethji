@@ -36,9 +36,6 @@ class TagReport(object):
                 return json.loads(cached_response)
             response = f(*args, **kwargs)
             expire_duration = app.config.get('EXPIRE_DURATION')
-            if g.last_sync_time:
-                sync_time_diff = int(round(time.time())) - g.last_sync_time
-                expire_duration = expire_duration - sync_time_diff
             gevent.spawn_raw(self.redis_handler.set_object_cache, path,
                              json.dumps(response), expire_duration)
             return response
