@@ -19,7 +19,7 @@ class TagReport(object):
             host=app.config.get('REDIS_HOST'),
             port=app.config.get('REDIS_PORT_NO'),
             password=app.config.get('REDIS_PASSWORD'),
-            timeout=app.config.get('REDIS_TIMEOUT'),
+            idle_timeout=app.config.get('REDIS_IDLE_TIMEOUT'),
         )
         self.get_tag_resources = self._cache_function(self.get_tag_resources)
 

@@ -1,18 +1,23 @@
 # -*- coding: utf-8 -
 #
 
+import gevent
+import gevent.monkey
+gevent.monkey.patch_all()
+
 import redis
 import time
 
 
 class RedisHandler(object):
-    def __init__(self, host=None, port=None, password=None, timeout=None):
+    def __init__(self, host=None, port=None, password=None, idle_timeout=None):
         if host is None:
             host = '127.0.0.1'
         if port is None:
             port = 6379
-        self.connection = redis.Redis(host=host, port=port, password=password,
-            socket_timeout=timeout)
+        self.connection = redis.StrictRedis(host=host, port=port,
+                                            password=password)
+        self.idle_timeout = idle_timeout
         self.instance_hash_prefix = 'aws:ec2:instance'          ## Suffix: region, instance id
         self.ebs_vol_hash_prefix = 'aws:ec2:ebs'                ## Suffix: region, volume id
         self.elb_hash_prefix = 'aws:ec2:elb'                    ## Suffix: region, elb name
@@ -22,6 +27,7 @@ class RedisHandler(object):
         self.sync_lock_hash = 'sethji:sync_lock'                ## No Suffix
         self.last_sync_time_hash = 'sethji:last_sync_time'      ## No Suffix
         self.object_cache_hash = 'sethji:object_cache'          ## object path
+        gevent.spawn_raw(self._close_idle_connections)
 
 
     def get_cached_object(self, path):
@@ -167,3 +173,16 @@ class RedisHandler(object):
         hash_set.difference_update(set(valid_keys))
         if hash_set:
             self.connection.delete(*hash_set)
+
+
+    def _close_idle_connections(self):
+        client_list = self.connection.client_list()
+        idle_connection_mapping = {}
+        for client in client_list:
+            idle_connection_mapping[int(client['idle'])] = client['addr']
+        idle_time_list = idle_connection_mapping.keys()
+        idle_time_list.sort(reverse=True)
+        for idle_time in idle_time_list:
+            if idle_time < self.idle_timeout:
+                break
+            self.connection.client_kill(idle_connection_mapping[idle_time])

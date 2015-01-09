@@ -18,7 +18,7 @@ class SyncAws(object):
             host=app.config.get('REDIS_HOST'),
             port=app.config.get('REDIS_PORT_NO'),
             password=app.config.get('REDIS_PASSWORD'),
-            timeout=app.config.get('REDIS_TIMEOUT'),
+            idle_timeout=app.config.get('REDIS_IDLE_TIMEOUT'),
         )
         # AWS details
         self.apikey = app.config.get('AWS_ACCESS_KEY_ID')
