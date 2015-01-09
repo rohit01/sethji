@@ -93,9 +93,9 @@ class RedisHandler(object):
 
 
     def clean_instance_entries(self, valid_keys):
-        for hash_key in self.connection.keys("%s*" % self.instance_hash_prefix):
-            if hash_key not in valid_keys:
-                self.connection.delete(hash_key)
+        hash_list = self.connection.keys("%s*" % self.instance_hash_prefix)
+        if hash_list:
+            self.connection.delete(*hash_list)
 
 
     def save_elb_details(self, item_details):
@@ -134,9 +134,9 @@ class RedisHandler(object):
 
 
     def clean_elb_entries(self, valid_keys):
-        for hash_key in self.connection.keys("%s*" % self.elb_hash_prefix):
-            if hash_key not in valid_keys:
-                self.connection.delete(hash_key)
+        hash_list = self.connection.keys("%s*" % self.elb_hash_prefix)
+        if hash_list:
+            self.connection.delete(*hash_list)
 
 
     def save_elastic_ip_details(self, item_details):
@@ -147,10 +147,9 @@ class RedisHandler(object):
 
 
     def clean_elastic_ip_entries(self, valid_keys):
-        for hash_key in self.connection.keys("%s*" %
-                                             self.elastic_ip_hash_prefix):
-            if hash_key not in valid_keys:
-                self.connection.delete(hash_key)
+        hash_list = self.connection.keys("%s*" % self.elastic_ip_hash_prefix)
+        if hash_list:
+            self.connection.delete(*hash_list)
 
 
     def get_details(self, hash_key):
@@ -171,15 +170,6 @@ class RedisHandler(object):
     def get_index(self, key):
         hash_key = "%s:%s" % (self.index_prefix, key)
         return self.connection.get(hash_key)
-
-
-    def get_index_hash_key(self, key):
-        return "%s:%s" % (self.index_prefix, key)
-
-
-    def delete_index(self, key):
-        hash_key = "%s:%s" % (self.index_prefix, key)
-        return self.connection.delete(hash_key)
 
 
     def exists(self, hash_key):
