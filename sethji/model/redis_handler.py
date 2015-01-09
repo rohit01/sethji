@@ -18,9 +18,27 @@ class RedisHandler(object):
         self.elb_hash_prefix = 'aws:ec2:elb'                    ## Suffix: region, elb name
         self.elastic_ip_hash_prefix = 'aws:ec2:elastic_ip'      ## Suffix: ip_address
         self.index_prefix = 'aws:index'                         ## Suffix: index_item
-        self.all_tags_hash = 'unbrella:indexed_tags'            ## No Suffix
-        self.sync_lock_hash = 'unbrella:sync_lock'              ## No Suffix
-        self.last_sync_time_hash = 'unbrella:last_sync_time'    ## No Suffix
+        self.all_tags_hash = 'sethji:indexed_tags'              ## No Suffix
+        self.sync_lock_hash = 'sethji:sync_lock'                ## No Suffix
+        self.last_sync_time_hash = 'sethji:last_sync_time'      ## No Suffix
+        self.object_cache_hash = 'sethji:object_cache'          ## object path
+
+
+    def get_cached_object(self, path):
+        hash_key = "%s:%s" % (self.object_cache_hash, path)
+        return self.connection.get(hash_key)
+
+
+    def set_object_cache(self, path, content, expire_duration):
+        hash_key = "%s:%s" % (self.object_cache_hash, path)
+        self.connection.set(hash_key, content)
+        if expire_duration:
+            self.connection.expire(hash_key, expire_duration)
+
+
+    def flush_object_cache(self):
+        for hash_key in self.connection.keys("%s*" % self.object_cache_hash):
+            self.connection.delete(hash_key)
 
 
     def set_last_sync_time(self):

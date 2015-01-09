@@ -54,6 +54,7 @@ class SyncAws(object):
         self.clean_stale_entries()
         print 'Details saved. Indexing records!'
         self.index_records()
+        self.redis_handler.flush_object_cache()
         self.redis_handler.set_last_sync_time()
         self.redis_handler.set_sync_lock(timeout=0)
         print 'Complete'

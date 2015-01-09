@@ -7,6 +7,8 @@ gevent.monkey.patch_all()
 
 from sethji import app, ALL_RESOURCE_INDEX
 from redis_handler import RedisHandler
+from functools import wraps
+import json
 
 
 class TagReport(object):
@@ -17,6 +19,25 @@ class TagReport(object):
             password=app.config.get('REDIS_PASSWORD'),
             timeout=app.config.get('REDIS_TIMEOUT'),
         )
+        self.get_tag_resources = self._cache_function(self.get_tag_resources)
+
+
+    def _cache_function(self, f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            kwargs_keys = kwargs.keys()
+            kwargs_keys.sort()
+            path = "%s/%s/%s" % (f.func_name, '/'.join(args),
+                '/'.join(['%s=%s' % (k, kwargs[k]) for k in kwargs_keys]))
+            cached_response = self.redis_handler.get_cached_object(path)
+            if cached_response:
+                return json.loads(cached_response)
+            response = f(*args, **kwargs)
+            expire = app.config.get('EXPIRE_DURATION')
+            gevent.spawn_raw(self.redis_handler.set_object_cache, path,
+                json.dumps(response), expire)
+            return response
+        return decorated_function
 
 
     def get_tags_info(self):
