@@ -50,12 +50,11 @@ class SyncAws(object):
         print 'Sync Started... . . .  .  .   .     .     .'
         gevent.joinall(thread_list, timeout=self.sync_timeout)
         gevent.killall(thread_list)
-        print 'Starting cleanup of stale records...'
-        self.clean_stale_entries()
         print 'Details saved. Indexing records!'
         self.index_records()
-        self.redis_handler.flush_object_cache()
         self.redis_handler.set_last_sync_time()
+        print 'Starting cleanup of stale records...'
+        self.redis_handler.cleanup_keys(self.index_keys)
         self.redis_handler.set_sync_lock(timeout=0)
         print 'Complete'
 
@@ -217,12 +216,6 @@ class SyncAws(object):
             if self.expire > 0:
                 self.redis_handler.expire(hash_key, self.expire)
         print "EBS volume sync complete for ec2 region: %s" % region
-
-
-    def clean_stale_entries(self):
-        self.redis_handler.clean_instance_entries(valid_keys=self.index_keys)
-        self.redis_handler.clean_elb_entries(valid_keys=self.index_keys)
-        self.redis_handler.clean_elastic_ip_entries(valid_keys=self.index_keys)
 
 
     def index_records(self):

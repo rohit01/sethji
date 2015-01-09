@@ -24,7 +24,7 @@ HOST = os.environ.get('HOST', '0.0.0.0')
 PORT = int(os.environ.get('PORT', 5000))
 
 ## AWS Sync and auto refresh timeouts
-SYNC_TIMEOUT = int(os.environ.get('SYNC_TIMEOUT', 600))
+SYNC_TIMEOUT = int(os.environ.get('SYNC_TIMEOUT', 300))
 AUTO_REFRESH_TIMEOUT = int(os.environ.get('AUTO_REFRESH_TIMEOUT', 3600))
 
 ## EC2 region to be synced (comma separated values)

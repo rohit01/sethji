@@ -36,11 +36,6 @@ class RedisHandler(object):
             self.connection.expire(hash_key, expire_duration)
 
 
-    def flush_object_cache(self):
-        for hash_key in self.connection.keys("%s*" % self.object_cache_hash):
-            self.connection.delete(hash_key)
-
-
     def set_last_sync_time(self):
         time_now = int(round(time.time()))
         return self.connection.set(self.last_sync_time_hash, time_now)
@@ -92,12 +87,6 @@ class RedisHandler(object):
         return self.connection.hget(hash_key, key)
 
 
-    def clean_instance_entries(self, valid_keys):
-        hash_list = self.connection.keys("%s*" % self.instance_hash_prefix)
-        if hash_list:
-            self.connection.delete(*hash_list)
-
-
     def save_elb_details(self, item_details):
         hash_key = "%s:%s:%s" % (self.elb_hash_prefix,
                                  item_details['region'],
@@ -133,23 +122,11 @@ class RedisHandler(object):
         return self.connection.hgetall(self.all_tags_hash)
 
 
-    def clean_elb_entries(self, valid_keys):
-        hash_list = self.connection.keys("%s*" % self.elb_hash_prefix)
-        if hash_list:
-            self.connection.delete(*hash_list)
-
-
     def save_elastic_ip_details(self, item_details):
         hash_key = "%s:%s" % (self.elastic_ip_hash_prefix,
                               item_details['elastic_ip'])
         status = self.connection.hmset(hash_key, item_details)
         return (hash_key, status)
-
-
-    def clean_elastic_ip_entries(self, valid_keys):
-        hash_list = self.connection.keys("%s*" % self.elastic_ip_hash_prefix)
-        if hash_list:
-            self.connection.delete(*hash_list)
 
 
     def get_details(self, hash_key):
@@ -178,3 +155,15 @@ class RedisHandler(object):
 
     def expire(self, hash_key, duration):
         return self.connection.expire(hash_key, duration)
+
+
+    def cleanup_keys(self, valid_keys):
+        hash_set = set([])
+        hash_set.update(self.connection.keys("%s*" % self.instance_hash_prefix) or [])
+        hash_set.update(self.connection.keys("%s*" % self.ebs_vol_hash_prefix) or [])
+        hash_set.update(self.connection.keys("%s*" % self.elb_hash_prefix) or [])
+        hash_set.update(self.connection.keys("%s*" % self.elastic_ip_hash_prefix) or [])
+        hash_set.update(self.connection.keys("%s*" % self.object_cache_hash) or [])
+        hash_set.difference_update(set(valid_keys))
+        if hash_set:
+            self.connection.delete(*hash_set)
