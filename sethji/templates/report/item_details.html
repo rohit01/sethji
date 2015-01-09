@@ -5,58 +5,66 @@
 
   {% if item_details %}
     <h2 align="center">{{ page_meta['name'] }}</h2>
-    <table class="table table-bordered table-striped">
-      <tr class="info">
-          <td><b>Property</b></td>
-          <td><b>Value</b></td>
-      </tr>
-      {% for key, value in item_details.items() %}
-        {% if key != 'tags' %}
-          <tr>
-            <td>{{ key }}</td>
-            <!-- Generate link, if applicable -->
-            {% if item_details.get('Region', '') != '' %}
-              {% if key == 'Volume ID' %}
-                <td><a href="{{ url_for('report.ebs_volume_details', region=item_details.get('Region', '-'), volume_id=value) }}">{{ value }}</a></td>
-              {% elif key == 'Instance ID' %}
-                <td><a href="{{ url_for('report.instance_details', region=item_details.get('Region', '-'), instance_id=value) }}">{{ value }}</a></td>
-              {% elif key == 'EBS Volumes' %}
-                <td>
-                  {% for volume_id in value.split(',') %}
-                    {% if volume_id != value.split(',')[0] %}, {% endif %}
-                    <a href="{{ url_for('report.ebs_volume_details', region=item_details.get('Region', '-'), volume_id=volume_id) }}">{{ volume_id }}</a>
-                  {% endfor %}
-                </td>
-              {% elif key == 'ELB Name(s)' %}
-                <td>
-                  {% for elb_name in value.split(',') %}
-                    {% if elb_name != value.split(',')[0] %}, {% endif %}
-                    <a href="{{ url_for('report.elb_details', region=item_details.get('Region', '-'), elb_name=elb_name) }}">{{ elb_name }}</a>
-                  {% endfor %}
-                </td>
+    <table class="table table-bordered table-striped sortable">
+      <thead>
+        <tr class="info">
+          <th><b>Property</b></th>
+          <th><b>Value</b></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for key, value in item_details.items() %}
+          {% if key != 'tags' %}
+            <tr>
+              <td>{{ key }}</td>
+              <!-- Generate link, if applicable -->
+              {% if item_details.get('Region', '') != '' %}
+                {% if key == 'Volume ID' %}
+                  <td><a href="{{ url_for('report.ebs_volume_details', region=item_details.get('Region', '-'), volume_id=value) }}">{{ value }}</a></td>
+                {% elif key == 'Instance ID' %}
+                  <td><a href="{{ url_for('report.instance_details', region=item_details.get('Region', '-'), instance_id=value) }}">{{ value }}</a></td>
+                {% elif key == 'EBS Volumes' %}
+                  <td>
+                    {% for volume_id in value.split(',') %}
+                      {% if volume_id != value.split(',')[0] %}, {% endif %}
+                      <a href="{{ url_for('report.ebs_volume_details', region=item_details.get('Region', '-'), volume_id=volume_id) }}">{{ volume_id }}</a>
+                    {% endfor %}
+                  </td>
+                {% elif key == 'ELB Name(s)' %}
+                  <td>
+                    {% for elb_name in value.split(',') %}
+                      {% if elb_name != value.split(',')[0] %}, {% endif %}
+                      <a href="{{ url_for('report.elb_details', region=item_details.get('Region', '-'), elb_name=elb_name) }}">{{ elb_name }}</a>
+                    {% endfor %}
+                  </td>
+                {% else %}
+                  <td>{{ value }}</td>
+                {% endif %}
               {% else %}
                 <td>{{ value }}</td>
               {% endif %}
-            {% else %}
-              <td>{{ value }}</td>
-            {% endif %}
-          </tr>
-        {% endif %}
-      {% endfor %}
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tbody>
     </table>
 
     {% if 'tags' in item_details %}
-      <table class="table table-bordered table-striped">
-        <tr class="info">
-          <td><b>Tags</b></td>
-          <td></td>
-        </tr>
-        {% for key, value in item_details['tags'].items() %}
-          <tr>
-            <td><a href="{{ url_for('report.report', tag_name=key, tag_value='all') }}">{{ key }}</a></td>
-            <td><a href="{{ url_for('report.report', tag_name=key, tag_value=value) }}">{{ value }}</a></td>
+      <table class="table table-bordered table-striped sortable">
+        <thead>
+          <tr class="info">
+            <th><b>Tags</b></th>
+            <th></th>
           </tr>
-        {% endfor %}
+        </thead>
+        <tbody>
+          {% for key, value in item_details['tags'].items() %}
+            <tr>
+              <td><a href="{{ url_for('report.report', tag_name=key, tag_value='all') }}">{{ key }}</a></td>
+              <td><a href="{{ url_for('report.report', tag_name=key, tag_value=value) }}">{{ value }}</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
       </table>
     {% endif %}
   {% else %}
