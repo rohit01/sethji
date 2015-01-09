@@ -33,7 +33,7 @@ class RedisHandler(object):
         self.sync_lock_hash = 'sethji:sync_lock'                ## No Suffix
         self.last_sync_time_hash = 'sethji:last_sync_time'      ## No Suffix
         self.object_cache_hash = 'sethji:object_cache'          ## object path
-        # gevent.spawn_raw(self._close_idle_connections)
+        gevent.spawn_raw(self._close_idle_connections)
 
 
     def get_cached_object(self, path):
