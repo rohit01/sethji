@@ -97,7 +97,8 @@ class SyncAws(object):
             instance_details = ec2_handler.get_instance_details(instance)
             if instance_details.get('state') == 'running':
                 per_hr_cost = self.pricing_api.get_instance_per_hr_cost(
-                    region, instance_details.get('instance_type'))
+                    region, instance_details.get('instance_type'),
+                    instance_details.get('platform'))
                 instance_details['per_hour_cost'] = per_hr_cost
             else:
                 instance_details['per_hour_cost'] = 0.0

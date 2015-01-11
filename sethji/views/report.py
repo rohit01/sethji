@@ -81,6 +81,7 @@ def instance_details(region, instance_id):
         'ec2_private_dns': 'Private DNS',
         'region': 'Region',
         'state': 'State',
+        'platform': 'Platform',
         'instance_id': 'Instance ID',
         'ec2_dns': 'Public DNS',
         'private_ip_address': 'Private IP Address',

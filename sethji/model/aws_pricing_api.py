@@ -9,9 +9,17 @@ import re
 PRICING_URLS = {
     "LINUX_INSTANCE_ON_DEMAND": "http://a0.awsstatic.com/pricing/1/ec2/linux-od.min.js",
     "PG_LINUX_INSTANCE_ON_DEMAND": "http://a0.awsstatic.com/pricing/1/ec2/previous-generation/linux-od.min.js",
+    "WINDOWS_INSTANCE_ON_DEMAND": "http://a0.awsstatic.com/pricing/1/ec2/mswin-od.min.js",
+    "PG_WINDOWS_INSTANCE_ON_DEMAND": "http://a0.awsstatic.com/pricing/1/ec2/previous-generation/mswin-od.min.js",
+
     "EBS_VOLUME": "http://a0.awsstatic.com/pricing/1/ebs/pricing-ebs.min.js",
     "ELB": "http://a0.awsstatic.com/pricing/1/elasticloadbalancer/pricing-elb.min.js",
     "ELASTIC_IP": "http://a0.awsstatic.com/pricing/1/ec2/pricing-elastic-ips.min.js",
+}
+
+INSTANCE_PLATFORM_TO_RESOURCE_TYPE = {
+    "linux": ["LINUX_INSTANCE_ON_DEMAND", "PG_LINUX_INSTANCE_ON_DEMAND"],
+    "windows": ["WINDOWS_INSTANCE_ON_DEMAND", "PG_WINDOWS_INSTANCE_ON_DEMAND"],
 }
 
 JSON_NAME_TO_EC2_REGIONS_API = {
@@ -49,9 +57,8 @@ class AwsPricingApi(object):
         self.currency = 'USD'
 
 
-    def get_instance_per_hr_cost(self, region, instance_type):
-        resource_type_list = ['LINUX_INSTANCE_ON_DEMAND',
-                              'PG_LINUX_INSTANCE_ON_DEMAND']
+    def get_instance_per_hr_cost(self, region, instance_type, platform):
+        resource_type_list = INSTANCE_PLATFORM_TO_RESOURCE_TYPE.get(platform, [])
         for resource_type in resource_type_list:
             self._fetch_price_info(resource_type)
             region_price = self._filter_region_price(

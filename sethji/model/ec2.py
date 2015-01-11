@@ -48,6 +48,7 @@ class Ec2Handler(object):
         details['ebs_optimized'] = instance.ebs_optimized
         details['vpc_id'] = instance.vpc_id
         details['root_device_type'] = instance.root_device_type
+        details['platform'] = instance.platform or 'linux'
         for _, volume in instance.block_device_mapping.items():
             if not volume.volume_id:
                 continue
