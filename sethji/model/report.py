@@ -91,12 +91,7 @@ class TagReport(object):
                 category = '--NOT-TRACKED--'
             if category not in tag_resources:
                 continue
-            if ('per_hour_cost' in details) and ('monthly_cost' not in details):
-                ph_cost = float(details.get('per_hour_cost'))
-                day_count = get_current_month_day_count()
-                details['monthly_cost'] = ph_cost * 24 * day_count
-            if 'monthly_cost' in details:
-                details['monthly_cost'] = round(float(details['monthly_cost']), 3)
+            details = self._cal_monthly_cost(details)
             if key.startswith(self.redis_handler.instance_hash_prefix):
                 tag_resources[category]['instance'].append(details)
             elif key.startswith(self.redis_handler.elb_hash_prefix):
@@ -111,16 +106,34 @@ class TagReport(object):
 
 
     def get_instance_details(self, region, instance_id):
-        return self.redis_handler.get_instance_details(region, instance_id)
+        details = self.redis_handler.get_instance_details(region, instance_id)
+        details = self._cal_monthly_cost(details)
+        return details
 
 
     def get_ebs_volume_details(self, region, volume_id):
-        return self.redis_handler.get_ebs_volume_details(region, volume_id)
+        details = self.redis_handler.get_ebs_volume_details(region, volume_id)
+        details = self._cal_monthly_cost(details)
+        return details
 
 
     def get_elb_details(self, region, elb_name):
-        return self.redis_handler.get_elb_details(region, elb_name)
+        details = self.redis_handler.get_elb_details(region, elb_name)
+        details = self._cal_monthly_cost(details)
+        return details
 
 
     def get_elastic_ip_details(self, elastic_ip):
-        return self.redis_handler.get_elastic_ip_details(elastic_ip)
+        details = self.redis_handler.get_elastic_ip_details(elastic_ip)
+        details = self._cal_monthly_cost(details)
+        return details
+
+
+    def _cal_monthly_cost(self, details):
+        if ('per_hour_cost' in details) and ('monthly_cost' not in details):
+            ph_cost = float(details.get('per_hour_cost'))
+            day_count = get_current_month_day_count()
+            details['monthly_cost'] = ph_cost * 24 * day_count
+        if 'monthly_cost' in details:
+            details['monthly_cost'] = round(float(details['monthly_cost']), 3)
+        return details
