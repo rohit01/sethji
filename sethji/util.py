@@ -1,4 +1,5 @@
 import datetime
+import calendar
 import re
 
 
@@ -59,3 +60,13 @@ def pretty_date(time_object=False):
     if day_diff < 365:
         return str(day_diff / 30) + " months ago"
     return str(day_diff / 365) + " years ago"
+
+
+def get_current_month_day_count():
+    now = datetime.datetime.now()
+    return calendar.monthrange(now.year, now.month)[1]
+
+
+def get_current_month_and_year():
+    now = datetime.datetime.now()
+    return now.strftime("%B"), now.year

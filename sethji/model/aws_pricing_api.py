@@ -27,10 +27,10 @@ JSON_NAME_TO_EC2_REGIONS_API = {
 }
 
 JSON_NAME_TO_EC2_EBS_VOL_API = {
-    "Amazon EBS General Purpose (SSD) volumes": "--unknown--",
-    "Amazon EBS Provisioned IOPS (SSD) volumes": "--unknown--",
+    "Amazon EBS General Purpose (SSD) volumes": "gp2",
+    "Amazon EBS Provisioned IOPS (SSD) volumes": "io1",
     "Amazon EBS Magnetic volumes": "standard",
-    "ebsSnapsToS3": "--unknown--",
+    "ebsSnapsToS3": "--not-applicable--",
 }
 
 
@@ -147,12 +147,9 @@ class AwsPricingApi(object):
             json_str = content[len('callback('):-1]
         else:
             json_str = content
-        try:
-            self.price_info[resource_type] = json.loads(json_str)
-        except ValueError:
-            json_str = re.sub('''([,\{][\s]*)([a-zA-Z0-9_]+)([\s]*:)''',
-                              r'\1"\2"\3', json_str)
-            self.price_info[resource_type] = json.loads(json_str)
+        json_str = re.sub('''([,\{][\s]*)([a-zA-Z0-9_]+)([\s]*:)''',
+                          r'\1"\2"\3', json_str)
+        self.price_info[resource_type] = json.loads(json_str)
 
 
     def _filter_region_price(self, price_info, region):

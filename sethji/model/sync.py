@@ -8,6 +8,7 @@ gevent.monkey.patch_all()
 from sethji import app, ALL_RESOURCE_INDEX
 from redis_handler import RedisHandler
 from ec2 import get_region_list, Ec2Handler
+from aws_pricing_api import AwsPricingApi
 import time
 
 
@@ -20,6 +21,7 @@ class SyncAws(object):
             password=app.config.get('REDIS_PASSWORD'),
             idle_timeout=app.config.get('REDIS_IDLE_TIMEOUT'),
         )
+        self.pricing_api = AwsPricingApi()
         # AWS details
         self.apikey = app.config.get('AWS_ACCESS_KEY_ID')
         self.apisecret = app.config.get('AWS_SECRET_ACCESS_KEY')
@@ -93,6 +95,9 @@ class SyncAws(object):
             return
         for instance in instance_list:
             instance_details = ec2_handler.get_instance_details(instance)
+            per_hr_cost = self.pricing_api.get_instance_per_hr_cost(
+                region, instance_details.get('instance_type'))
+            instance_details['per_hour_cost'] = per_hr_cost
             instance_details['timestamp'] = int(time.time())
             if instance_details.get('ebs_ids'):
                 for volume_id in instance_details.get('ebs_ids').split(','):
@@ -100,7 +105,7 @@ class SyncAws(object):
                         region, volume_id)
                     if not ebs_details:
                         continue
-                    ebs_details['instance_id'] = instance_details['instance_id']
+                    ebs_details['instance_id'] = instance_details.get('instance_id')
                     if not instance_details.get('tag_keys'):
                         continue
                     ebs_details['tag_keys'] = instance_details.get('tag_keys')
@@ -128,6 +133,8 @@ class SyncAws(object):
             return
         for elb in elb_list:
             details, instance_id_list = ec2_handler.get_elb_details(elb)
+            per_hr_cost = self.pricing_api.get_elb_per_hr_cost(region)
+            details['per_hour_cost'] = per_hr_cost
             details['timestamp'] = int(time.time())
             for instance_id in instance_id_list:
                 instance_elb_names = self.redis_handler.get_instance_item_value(
@@ -183,6 +190,7 @@ class SyncAws(object):
             details = ec2_handler.get_elastic_ip_details(elastic_ip)
             details['timestamp'] = int(time.time())
             if details.get('instance_id'):
+                details['per_hour_cost'] = 0.0
                 ## Add Instance tags in Elastic IP details
                 i_details = self.redis_handler.get_instance_details(
                     region, details.get('instance_id'))
@@ -193,6 +201,9 @@ class SyncAws(object):
                         if not tag_value:
                             continue
                         details['tag:%s' % tag_name] = tag_value
+            else:
+                per_hr_cost = self.pricing_api.get_elastic_ip_per_hr_cost(region)
+                details['per_hour_cost'] = per_hr_cost
             hash_key, _ = self.redis_handler.save_elastic_ip_details(details)
             self.index_keys.append(hash_key)
             if self.expire > 0:
@@ -210,6 +221,10 @@ class SyncAws(object):
             return
         for ebs_volume in ebs_volume_list:
             details = ec2_handler.get_ebs_details(ebs_volume)
+            per_gbm_cost = self.pricing_api.get_ebs_volume_per_gb_cost(
+                region, details.get('type'))
+            monthly_cost = per_gbm_cost * details.get('size')
+            details['monthly_cost'] = monthly_cost
             details['timestamp'] = int(time.time())
             hash_key, _ = self.redis_handler.save_ebs_vol_details(details)
             self.index_keys.append(hash_key)

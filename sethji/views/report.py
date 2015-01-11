@@ -3,7 +3,7 @@
 
 from sethji.model.report import TagReport
 from flask import Blueprint, render_template, redirect, url_for, request
-from sethji.util import pretty_date
+from sethji.util import pretty_date, get_current_month_and_year
 from sethji.views.account import requires_login
 from datetime import datetime
 import time
@@ -27,6 +27,13 @@ def organize_details(item_details, friendly_names={}):
         time_now = int(round(time.time()))
         check_time = int(item_details.pop('timestamp'))
         item_details['Last checked'] = pretty_date(check_time)
+    if 'per_hour_cost' in item_details:
+        item_details['Hourly cost (USD)'] = "$ %s" \
+            % round(float(item_details.pop('per_hour_cost')), 3)
+    if 'monthly_cost' in item_details:
+        month, year = get_current_month_and_year()
+        item_details['%s %s cost (USD)' % (month, year)] = "$ %s" \
+            % round(float(item_details.pop('monthly_cost')), 3)
     for k, v in friendly_names.items():
         if k in item_details:
             item_details[v] = item_details.pop(k)
@@ -53,12 +60,15 @@ def report(tag_name, tag_value='all'):
     if tag_name not in tags_info:
         return redirect(url_for('report.index', redirect=False))
     tag_resources = reports.get_tag_resources(tag_name, tag_value)
+    current_month, current_year = get_current_month_and_year()
     return render_template(
         'report/report.html',
         tags_info=tags_info,
         selected_tag=tag_name,
         selected_tag_value=tag_value,
         tag_resources=tag_resources,
+        current_month=current_month,
+        current_year=current_year,
     )
 
 

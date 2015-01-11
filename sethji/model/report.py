@@ -6,6 +6,7 @@ import gevent.monkey
 gevent.monkey.patch_all()
 
 from sethji import app, ALL_RESOURCE_INDEX
+from sethji.util import get_current_month_day_count
 from redis_handler import RedisHandler
 from functools import wraps
 from flask import g
@@ -90,6 +91,12 @@ class TagReport(object):
                 category = '--NOT-TRACKED--'
             if category not in tag_resources:
                 continue
+            if ('per_hour_cost' in details) and ('monthly_cost' not in details):
+                ph_cost = float(details.get('per_hour_cost'))
+                day_count = get_current_month_day_count()
+                details['monthly_cost'] = ph_cost * 24 * day_count
+            if 'monthly_cost' in details:
+                details['monthly_cost'] = round(float(details['monthly_cost']), 3)
             if key.startswith(self.redis_handler.instance_hash_prefix):
                 tag_resources[category]['instance'].append(details)
             elif key.startswith(self.redis_handler.elb_hash_prefix):
