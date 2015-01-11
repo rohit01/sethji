@@ -38,7 +38,7 @@
         <ul class="nav navbar-nav">
           <li class="active"><a href="#">Last Updated - {{g.last_update}}</a></li>
         </ul>
-        <form class="navbar-form navbar-left" action="/sync/" method="post">
+        <form class="navbar-form navbar-left" action="{{ url_for('sync.sync', next=request.path ) }}" method="post">
           <button type="submit" class="btn btn-link"><span class="glyphicon glyphicon-refresh" aria-hidden="true" /></button>
         </form>
         <ul class="nav navbar-nav navbar-right">
