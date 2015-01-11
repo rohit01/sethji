@@ -133,13 +133,12 @@ def welcome_joke(first_name, last_name):
     if last_name:
         params['lastName'] = last_name
     url = "http://api.icndb.com/jokes/random?%s" % urlencode(params)
+    message = 'Greetings %s!' % first_name
     try:
         resp = requests.get(url, timeout=2)
         if 200 <= resp.status_code < 300:
             content = json.loads(resp.text)
-            message = content.get('value', {}).get('joke')
-            if not message:
-                message = 'Welcome %s!' % first_name
-    except Exception:
-        message = 'Welcome %s!' % first_name
+            message = content.get('value', {}).get('joke') or message
+    except Exception as e:
+        print e.message
     return message
