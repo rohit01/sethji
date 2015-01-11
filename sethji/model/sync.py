@@ -95,9 +95,12 @@ class SyncAws(object):
             return
         for instance in instance_list:
             instance_details = ec2_handler.get_instance_details(instance)
-            per_hr_cost = self.pricing_api.get_instance_per_hr_cost(
-                region, instance_details.get('instance_type'))
-            instance_details['per_hour_cost'] = per_hr_cost
+            if instance_details.get('state') == 'running':
+                per_hr_cost = self.pricing_api.get_instance_per_hr_cost(
+                    region, instance_details.get('instance_type'))
+                instance_details['per_hour_cost'] = per_hr_cost
+            else:
+                instance_details['per_hour_cost'] = 0.0
             instance_details['timestamp'] = int(time.time())
             if instance_details.get('ebs_ids'):
                 for volume_id in instance_details.get('ebs_ids').split(','):
