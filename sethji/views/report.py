@@ -2,10 +2,11 @@
 #
 
 from sethji.model.report import TagReport
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request, g
 from sethji.util import pretty_date, get_current_month_and_year
 from sethji.views.account import requires_login
 from datetime import datetime
+from functools import wraps
 import time
 
 
@@ -41,31 +42,41 @@ def organize_details(item_details, friendly_names={}):
             item_details[v] = item_details.pop(k)
 
 
+def set_tags_info(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        reports = TagReport()
+        g.tags_info = reports.get_tags_info()
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @mod.route("/")
 @requires_login
+@set_tags_info
 def index():
-    reports = TagReport()
-    tag_keys = reports.get_tags_info().keys()
-    redirect_default = request.args.get('redirect', 'true').lower() == 'true'
-    if (DEFAULT_REPORT in tag_keys) and redirect_default:
+    redirect_default = request.args.get('redirect', 'true').lower() != 'false'
+    if (DEFAULT_REPORT in g.tags_info) and redirect_default:
         return redirect(url_for('report.report', tag_name=DEFAULT_REPORT,
                         tag_value='all'))
+    elif g.tags_info and redirect_default:
+        return redirect(url_for('report.report', tag_name=g.tags_info.keys()[0],
+                        tag_value='all'))
     else:
-        return render_template('report/index.html', tag_keys=tag_keys)
+        return render_template('report/index.html')
 
 
 @mod.route("/<tag_name>/<tag_value>")
 @requires_login
+@set_tags_info
 def report(tag_name, tag_value='all'):
     reports = TagReport()
-    tags_info = reports.get_tags_info()
-    if tag_name not in tags_info:
+    if tag_name not in g.tags_info:
         return redirect(url_for('report.index', redirect=False))
     tag_resources = reports.get_tag_resources(tag_name, tag_value)
     current_month, current_year = get_current_month_and_year()
     return render_template(
         'report/report.html',
-        tags_info=tags_info,
         selected_tag=tag_name,
         selected_tag_value=tag_value,
         tag_resources=tag_resources,
@@ -76,6 +87,7 @@ def report(tag_name, tag_value='all'):
 
 @mod.route("/instance/<region>/<instance_id>")
 @requires_login
+@set_tags_info
 def instance_details(region, instance_id):
     friendly_names = {
         'zone': 'Zone',
@@ -117,6 +129,7 @@ def instance_details(region, instance_id):
 
 @mod.route("/ebs_volume/<region>/<volume_id>")
 @requires_login
+@set_tags_info
 def ebs_volume_details(region, volume_id):
     current_month, current_year = get_current_month_and_year()
     friendly_names = {
@@ -155,6 +168,7 @@ def ebs_volume_details(region, volume_id):
 
 @mod.route("/elb/<region>/<elb_name>")
 @requires_login
+@set_tags_info
 def elb_details(region, elb_name):
     friendly_names = {
         'elb_name': 'ELB Name',
@@ -188,6 +202,7 @@ def elb_details(region, elb_name):
 
 @mod.route("/elastic_ip/<elastic_ip>")
 @requires_login
+@set_tags_info
 def elastic_ip_details(elastic_ip):
     friendly_names = {
         'region': 'Region',
