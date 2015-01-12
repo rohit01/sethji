@@ -27,14 +27,16 @@ def organize_details(item_details, friendly_names={}):
         time_now = int(round(time.time()))
         check_time = int(item_details.pop('timestamp'))
         item_details['Last checked'] = pretty_date(check_time)
-    if 'per_hour_cost' in item_details:
-        item_details['Hourly cost (USD)'] = "$ %s" \
-            % round(float(item_details.pop('per_hour_cost')), 3)
-    if 'monthly_cost' in item_details:
-        month, year = get_current_month_and_year()
-        item_details['%s %s cost (USD)' % (month, year)] = "$ %s" \
-            % round(float(item_details.pop('monthly_cost')), 3)
+    month, year = get_current_month_and_year()
+    friendly_names['monthly_cost'] = '%s, %s cost (USD)' % (month, year)
+    friendly_names['per_hour_cost'] = 'Hourly cost (USD)'
     for k, v in friendly_names.items():
+        if k in ['monthly_cost', 'per_gbm_storage_cost', 'per_mior_cost',
+                 'per_iops_cost']:
+            try:
+                item_details[k] = "$ %s" % round(float(item_details.get(k)), 3)
+            except (ValueError, TypeError):
+                pass
         if k in item_details:
             item_details[v] = item_details.pop(k)
 
@@ -116,6 +118,7 @@ def instance_details(region, instance_id):
 @mod.route("/ebs_volume/<region>/<volume_id>")
 @requires_login
 def ebs_volume_details(region, volume_id):
+    current_month, current_year = get_current_month_and_year()
     friendly_names = {
         'create_time': 'Create Time',
         'volume_id': 'Volume ID',
@@ -127,6 +130,9 @@ def ebs_volume_details(region, volume_id):
         'status': 'Status',
         'type': 'Type',
         'zone': 'Zone',
+        'per_gbm_storage_cost': 'Per GB per month cost (USD)',
+        'per_mior_cost': 'Per million I/O requests cost (USD)',
+        'per_iops_cost': 'Per IOPS cost (USD)',
     }
     page_meta = {
         'title': "EBS volume details - %s" % volume_id,

@@ -225,9 +225,28 @@ class SyncAws(object):
             return
         for ebs_volume in ebs_volume_list:
             details = ec2_handler.get_ebs_details(ebs_volume)
-            per_gbm_cost = self.pricing_api.get_ebs_volume_per_gb_cost(
-                region, details.get('type'))
+            per_gbm_cost = self.pricing_api.get_ebs_volume_cost(
+                region, details.get('type'), 'per_gbm')
+            if details.get('type') == 'standard':
+                per_mior_cost = self.pricing_api.get_ebs_volume_cost(
+                    region, details.get('type'), 'per_mior')
+                io_cost = "variable"
+                details['per_mior_cost'] = per_mior_cost
+            elif details.get('type') == 'gp2':
+                io_cost = 0.0
+            elif details.get('type') == 'io1':
+                per_iops_cost = self.pricing_api.get_ebs_volume_cost(
+                    region, details.get('type'), 'per_iops')
+                iops_count = details.get('iops', 0)
+                if iops_count and per_iops_cost:
+                    io_cost = iops_count * per_iops_cost
+                else:
+                    io_cost = 'Not Found'
+                details['per_iops_cost'] = per_iops_cost
+            details['per_gbm_storage_cost'] = per_gbm_cost
             monthly_cost = per_gbm_cost * details.get('size')
+            if isinstance(io_cost, int) or isinstance(io_cost, float):
+                monthly_cost += io_cost
             details['monthly_cost'] = monthly_cost
             details['timestamp'] = int(time.time())
             hash_key, _ = self.redis_handler.save_ebs_vol_details(details)

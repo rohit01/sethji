@@ -75,7 +75,12 @@ class AwsPricingApi(object):
         return None
 
 
-    def get_ebs_volume_per_gb_cost(self, region, ebs_type):
+    def get_ebs_volume_cost(self, region, ebs_type, cost_type):
+        cost_type_to_json_name = {
+            'per_gbm': 'perGBmoProvStorage',
+            'per_iops': 'perPIOPSreq',
+            'per_mior': 'perMMIOreq',
+        }
         self._fetch_price_info('EBS_VOLUME')
         region_price = self._filter_region_price(
             self.price_info.get('EBS_VOLUME', {}), region)
@@ -88,7 +93,7 @@ class AwsPricingApi(object):
                 continue
             price_values = price_type.get('values', [])
             for rate_info in price_values:
-                if rate_info.get('rate') == 'perGBmoProvStorage':
+                if rate_info.get('rate') == cost_type_to_json_name.get(cost_type):
                     return float(rate_info.get('prices', {}).get(self.currency))
         return None
 
