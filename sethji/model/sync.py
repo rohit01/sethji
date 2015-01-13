@@ -324,6 +324,7 @@ class SyncAws(object):
                 tag_value = details.get('tag:%s' % tag_name, '').strip()
                 if not tag_value:
                     continue
+                tag_value = "%s:%s" % (tag_name, tag_value)
                 self.save_index(hash_key, tag_value)
                 if ',' in tag_value:
                     for sub_values in tag_value.split(','):

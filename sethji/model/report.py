@@ -44,7 +44,18 @@ class TagReport(object):
 
 
     def get_tags_info(self):
-        return self.redis_handler.get_indexed_tags()
+        tags_info = self.redis_handler.get_indexed_tags()
+        for k, v in tags_info.items():
+            if not v:
+                continue
+            value_list = []
+            for key_value in v.split(','):
+                if key_value.startswith('%s:' % k):
+                    value_list.append(key_value[(len(k) + 1):])
+                else:
+                    value_list.append(key_value)
+            tags_info[k] = ','.join(value_list)
+        return tags_info
 
 
     def get_tag_resources(self, tag_key, tag_value=None):
@@ -56,6 +67,7 @@ class TagReport(object):
         hash_set = set()
         for value in process_tag_values.split(','):
             if value.strip():
+                value = "%s:%s" % (tag_key, value)
                 hash_keys = self.redis_handler.get_index(value) or ''
                 if hash_keys:
                     hash_set.update(hash_keys.split(','))
