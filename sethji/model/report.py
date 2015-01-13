@@ -47,6 +47,7 @@ class TagReport(object):
         tags_info = self.redis_handler.get_indexed_tags()
         for k, v in tags_info.items():
             if not v:
+                tags_info[k] = []
                 continue
             value_list = []
             for key_value in v.split(','):
@@ -54,18 +55,18 @@ class TagReport(object):
                     value_list.append(key_value[(len(k) + 1):])
                 else:
                     value_list.append(key_value)
-            tags_info[k] = ','.join(value_list)
+            tags_info[k] = value_list
         return tags_info
 
 
     def get_tag_resources(self, tag_key, tag_value=None):
         tags_info = self.get_tags_info()
         if (not tag_value) or (tag_value.lower() == 'all'):
-            process_tag_values = tags_info.get(tag_key, '')
+            process_tag_values = tags_info.get(tag_key, [])
         else:
-            process_tag_values = tag_value
+            process_tag_values = tag_value.split(',')
         hash_set = set()
-        for value in process_tag_values.split(','):
+        for value in process_tag_values:
             if value.strip():
                 value = "%s:%s" % (tag_key, value)
                 hash_keys = self.redis_handler.get_index(value) or ''
@@ -118,6 +119,18 @@ class TagReport(object):
                 tag_resources[category]['ebs_snapshots'].append(details)
             else:
                 raise Exception("Unable to categorize info: %s" % str(details))
+        ## Calculate total cost
+        for category, resources in tag_resources.items():
+            for resource_type, resource_list in resources.items():
+                total_cost = 0.0
+                for details in resource_list:
+                    try:
+                        total_cost += float(details.get('monthly_cost'))
+                    except (ValueError, TypeError):
+                        total_cost = 'Undefined'
+                if isinstance(total_cost, float):
+                    tcost_key = "%s:total_cost" % resource_type
+                    tag_resources[category][tcost_key] = round(total_cost, 3)
         return tag_resources
 
 

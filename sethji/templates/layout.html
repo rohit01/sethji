@@ -69,7 +69,7 @@
                   {% if selected_tag_value != 'all' %}
                       <li><a href="{{ url_for('report.report', tag_name=selected_tag, tag_value='all') }}">all</a></li>
                   {% endif %}
-                  {% for tag_value in g.tags_info[selected_tag].split(',') %}
+                  {% for tag_value in g.tags_info.get(selected_tag, []) %}
                     {% if tag_value != selected_tag_value %}
                       <li><a href="{{ url_for('report.report', tag_name=selected_tag, tag_value=tag_value) }}">{{ tag_value }}</a></li>
                     {% endif %}

@@ -18,10 +18,8 @@
         <th>Region</th>
       </tr>
     </thead>
-    {% set total_cost = [0] %}
     <tbody>
       {% for details in tag_resources.get(selected_tag, {}).get('instance', []) %}
-        {% set _ = total_cost.append(total_cost.pop() + details.get('monthly_cost', 0)) %}
         <tr>
           <td>{{ details.get('tag:%s' % selected_tag, '-') }}</td>
           {% if selected_tag != 'Name' %}
@@ -35,17 +33,19 @@
         </tr>
       {% endfor %}
     </tbody>
-    <tr>
-      <td></td>
-      {% if selected_tag != 'Name' %}
+    {% if 'instance:total_cost' in tag_resources.get(selected_tag, {}) %}
+      <tr>
         <td></td>
-      {% endif %}
-      <td></td>
-      <td></td>
-      <td align="right">Total</td>
-      <td>$ {{ total_cost[0] }}</td>
-      <td></td>
-    </tr>
+        {% if selected_tag != 'Name' %}
+          <td></td>
+        {% endif %}
+        <td></td>
+        <td></td>
+        <td align="right">Total</td>
+        <td>$ {{ tag_resources.get(selected_tag, {}).get('instance:total_cost') }}</td>
+        <td></td>
+      </tr>
+    {% endif %}
   </table>
   {% endif %}
 
@@ -62,10 +62,8 @@
         <th>Region</th>
       </tr>
     </thead>
-    {% set total_cost = [0] %}
     <tbody>
       {% for details in tag_resources.get(selected_tag, {}).get('ebs_volumes', []) %}
-        {% set _ = total_cost.append(total_cost.pop() + details.get('monthly_cost', 0)) %}
         <tr>
           <td>{{ details.get('tag:%s' % selected_tag, '-') }}</td>
           <td><a href="{{ url_for('report.ebs_volume_details', region=details.get('region', '-'), volume_id=details.get('volume_id', '-')) }}">{{ details.get('volume_id', '-') }}</a></td>
@@ -76,14 +74,16 @@
         </tr>
       {% endfor %}
     </tbody>
-    <tr>
-      <td></td>
-      <td></td>
-      <td align="right">Total</td>
-      <td>$ {{ total_cost[0] }}</td>
-      <td></td>
-      <td></td>
-    </tr>
+    {% if 'ebs_volumes:total_cost' in tag_resources.get(selected_tag, {}) %}
+      <tr>
+        <td></td>
+        <td></td>
+        <td align="right">Total</td>
+        <td>$ {{ tag_resources.get(selected_tag, {}).get('ebs_volumes:total_cost') }}</td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
   </table>
   {% endif %}
 
@@ -112,6 +112,16 @@
         </tr>
       {% endfor %}
     </tbody>
+    {% if 'ebs_snapshots:total_cost' in tag_resources.get(selected_tag, {}) %}
+      <tr>
+        <td></td>
+        <td></td>
+        <td align="right">Total</td>
+        <td>$ {{ tag_resources.get(selected_tag, {}).get('ebs_snapshots:total_cost') }}</td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
   </table>
   {% endif %}
 
@@ -127,10 +137,8 @@
         <th>Region</th>
       </tr>
     </thead>
-    {% set total_cost = [0] %}
     <tbody>
       {% for details in tag_resources.get(selected_tag, {}).get('elb', []) %}
-        {% set _ = total_cost.append(total_cost.pop() + details.get('monthly_cost', 0)) %}
         <tr>
           <td>{{ details.get('tag:%s' % selected_tag, '-') }}</td>
           <td><a href="{{ url_for('report.elb_details', region=details.get('region', '-'), elb_name=details.get('elb_name', '-')) }}">{{ details.get('elb_name', '-') }}</a></td>
@@ -144,13 +152,15 @@
         </tr>
       {% endfor %}
     </tbody>
-    <tr>
-      <td></td>
-      <td></td>
-      <td align="right">Total</td>
-      <td>$ {{ total_cost[0] }}</td>
-      <td></td>
-    </tr>
+    {% if 'elb:total_cost' in tag_resources.get(selected_tag, {}) %}
+      <tr>
+        <td></td>
+        <td></td>
+        <td align="right">Total</td>
+        <td>$ {{ tag_resources.get(selected_tag, {}).get('elb:total_cost') }}</td>
+        <td></td>
+      </tr>
+    {% endif %}
   </table>
   {% endif %}
 
@@ -166,10 +176,8 @@
           <th>Region</th>
       </tr>
     </thead>
-    {% set total_cost = [0] %}
     <tbody>
       {% for details in tag_resources.get(selected_tag, {}).get('elastic_ip', []) %}
-        {% set _ = total_cost.append(total_cost.pop() + details.get('monthly_cost', 0)) %}
         <tr>
           <td>{{ details.get('tag:%s' % selected_tag, '-') }}</td>
           <td><a href="{{ url_for('report.elastic_ip_details', elastic_ip=details.get('elastic_ip', '-')) }}">{{ details.get('elastic_ip', '-') }}</a></td>
@@ -183,13 +191,15 @@
         </tr>
       {% endfor %}
     </tbody>
-    <tr>
-      <td></td>
-      <td></td>
-      <td align="right">Total</td>
-      <td>$ {{ total_cost[0] }}</td>
-      <td></td>
-    </tr>
+    {% if 'elastic_ip:total_cost' in tag_resources.get(selected_tag, {}) %}
+      <tr>
+        <td></td>
+        <td></td>
+        <td align="right">Total</td>
+        <td>$ {{ tag_resources.get(selected_tag, {}).get('elastic_ip:total_cost') }}</td>
+        <td></td>
+      </tr>
+    {% endif %}
   </table>
   {% endif %}
   <br />
@@ -210,10 +220,8 @@
         <th>Region</th>
       </tr>
     </thead>
-    {% set total_cost = [0] %}
     <tbody>
       {% for details in tag_resources.get('--NOT-TRACKED--', {}).get('instance', []) %}
-        {% set _ = total_cost.append(total_cost.pop() + details.get('monthly_cost', 0)) %}
         <tr>
           <td>{{ details.get('tag:Name', '-') }}</td>
           <td><a href="{{ url_for('report.instance_details', region=details.get('region', '-'), instance_id=details.get('instance_id', '-')) }}">{{ details.get('instance_id', '-') }}</a></td>
@@ -224,14 +232,16 @@
         </tr>
       {% endfor %}
     </tbody>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td align="right">Total</td>
-      <td>$ {{ total_cost[0] }}</td>
-      <td></td>
-    </tr>
+    {% if 'instance:total_cost' in tag_resources.get('--NOT-TRACKED--', {}) %}
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td align="right">Total</td>
+        <td>$ {{ tag_resources.get('--NOT-TRACKED--', {}).get('instance:total_cost') }}</td>
+        <td></td>
+      </tr>
+    {% endif %}
   </table>
   {% endif %}
 
@@ -247,10 +257,8 @@
         <th>Region</th>
       </tr>
     </thead>
-    {% set total_cost = [0] %}
     <tbody>
       {% for details in tag_resources.get('--NOT-TRACKED--', {}).get('ebs_volumes', []) %}
-        {% set _ = total_cost.append(total_cost.pop() + details.get('monthly_cost', 0)) %}
         <tr>
           <td><a href="{{ url_for('report.ebs_volume_details', region=details.get('region', '-'), volume_id=details.get('volume_id', '-')) }}">{{ details.get('volume_id', '-') }}</a></td>
           <td>{{ details.get('size', '-') }}</td>
@@ -260,13 +268,15 @@
         </tr>
       {% endfor %}
     </tbody>
-    <tr>
-      <td></td>
-      <td align="right">Total</td>
-      <td>$ {{ total_cost[0] }}</td>
-      <td></td>
-      <td></td>
-    </tr>
+    {% if 'ebs_volumes:total_cost' in tag_resources.get('--NOT-TRACKED--', {}) %}
+      <tr>
+        <td></td>
+        <td align="right">Total</td>
+        <td>$ {{ tag_resources.get('--NOT-TRACKED--', {}).get('ebs_volumes:total_cost') }}</td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
   </table>
   {% endif %}
 
@@ -293,6 +303,15 @@
         </tr>
       {% endfor %}
     </tbody>
+    {% if 'ebs_snapshots:total_cost' in tag_resources.get('--NOT-TRACKED--', {}) %}
+      <tr>
+        <td></td>
+        <td align="right">Total</td>
+        <td>$ {{ tag_resources.get('--NOT-TRACKED--', {}).get('ebs_snapshots:total_cost') }}</td>
+        <td></td>
+        <td></td>
+      </tr>
+    {% endif %}
   </table>
   {% endif %}
 
@@ -307,10 +326,8 @@
         <th>Region</th>
       </tr>
     </thead>
-    {% set total_cost = [0] %}
     <tbody>
       {% for details in tag_resources.get('--NOT-TRACKED--', {}).get('elb', []) %}
-        {% set _ = total_cost.append(total_cost.pop() + details.get('monthly_cost', 0)) %}
         <tr>
           <td><a href="{{ url_for('report.elb_details', region=details.get('region', '-'), elb_name=details.get('elb_name', '-')) }}">{{ details.get('elb_name', '-') }}</a></td>
           {% if details.get('elb_instances', '') == '' %}
@@ -323,12 +340,14 @@
         </tr>
       {% endfor %}
     </tbody>
-    <tr>
-      <td></td>
-      <td align="right">Total</td>
-      <td>$ {{ total_cost[0] }}</td>
-      <td></td>
-    </tr>
+    {% if 'elb:total_cost' in tag_resources.get('--NOT-TRACKED--', {}) %}
+      <tr>
+        <td></td>
+        <td align="right">Total</td>
+        <td>$ {{ tag_resources.get('--NOT-TRACKED--', {}).get('elb:total_cost') }}</td>
+        <td></td>
+      </tr>
+    {% endif %}
   </table>
   {% endif %}
 
@@ -343,10 +362,8 @@
         <th>Region</th>
       </tr>
     </thead>
-    {% set total_cost = [0] %}
     <tbody>
       {% for details in tag_resources.get('--NOT-TRACKED--', {}).get('elastic_ip', []) %}
-        {% set _ = total_cost.append(total_cost.pop() + details.get('monthly_cost', 0)) %}
         <tr>
           <td><a href="{{ url_for('report.elastic_ip_details', elastic_ip=details.get('elastic_ip', '-')) }}">{{ details.get('elastic_ip', '-') }}</a></td>
           {% if details.get('instance_id', '') == '' %}
@@ -359,12 +376,14 @@
         </tr>
       {% endfor %}
     </tbody>
-    <tr>
-      <td></td>
-      <td align="right">Total</td>
-      <td>$ {{ total_cost[0] }}</td>
-      <td></td>
-    </tr>
+    {% if 'elastic_ip:total_cost' in tag_resources.get('--NOT-TRACKED--', {}) %}
+      <tr>
+        <td></td>
+        <td align="right">Total</td>
+        <td>$ {{ tag_resources.get('--NOT-TRACKED--', {}).get('elastic_ip:total_cost') }}</td>
+        <td></td>
+      </tr>
+    {% endif %}
   </table>
   {% endif %}
 
