@@ -25,6 +25,7 @@ class SyncAws(object):
         # AWS details
         self.apikey = app.config.get('AWS_ACCESS_KEY_ID')
         self.apisecret = app.config.get('AWS_SECRET_ACCESS_KEY')
+        self.owner_id = app.config.get('AWS_OWNER_ID')
         self.regions = app.config.get('REGIONS')
         # Timeout
         self.expire = app.config.get('EXPIRE_DURATION')
@@ -79,11 +80,14 @@ class SyncAws(object):
             thread_list.append(thread)
             thread = gevent.spawn(self.sync_ebs_volumes, region)
             thread_list.append(thread)
+            thread = gevent.spawn(self.sync_ebs_snapshots, region)
+            thread_list.append(thread)
             thread = gevent.spawn(self.sync_ec2_elbs, region)
             thread_list.append(thread)
             thread = gevent.spawn(self.sync_elastic_ips, region)
             thread_list.append(thread)
         return thread_list
+
 
     def sync_ec2_instances(self, region):
         ec2_handler = Ec2Handler(self.apikey, self.apisecret, region)
@@ -112,12 +116,18 @@ class SyncAws(object):
                     ebs_details['instance_id'] = instance_details.get('instance_id')
                     if not instance_details.get('tag_keys'):
                         continue
-                    ebs_details['tag_keys'] = instance_details.get('tag_keys')
-                    for tag_name in instance_details['tag_keys'].split(','):
-                        tag_value = instance_details.get('tag:%s' % tag_name, '').strip()
+                    tag_keys = set(instance_details.get('tag_keys').split(','))
+                    if ebs_details.get('tag_keys'):
+                        tag_keys.update(set(ebs_details.get('tag_keys').split(',')))
+                    ebs_details['tag_keys'] = ','.join(tag_keys)
+                    for tag_name in instance_details.get('tag_keys').split(','):
+                        tag_value = set(instance_details.get('tag:%s' % tag_name, '').split(','))
+                        if ebs_details.get('tag:%s' % tag_name, '').strip():
+                            old_value = set(ebs_details.get('tag:%s' % tag_name).split(','))
+                            tag_value.update(old_value)
                         if not tag_value:
                             continue
-                        ebs_details['tag:%s' % tag_name] = tag_value
+                        ebs_details['tag:%s' % tag_name] = ','.join(tag_value)
                     self.redis_handler.save_ebs_vol_details(ebs_details)
             hash_key, _ = self.redis_handler.save_instance_details(
                 instance_details)
@@ -254,6 +264,52 @@ class SyncAws(object):
             if self.expire > 0:
                 self.redis_handler.expire(hash_key, self.expire)
         print "EBS volume sync complete for ec2 region: %s" % region
+
+
+    def sync_ebs_snapshots(self, region):
+        if not self.owner_id:
+            return
+        ec2_handler = Ec2Handler(self.apikey, self.apisecret, region)
+        try:
+            ebs_snapshot_list = ec2_handler.fetch_ebs_snapshots(
+                owner_id=self.owner_id)
+        except Exception as e:
+            print "Exception for EBS Snapshots in Region: %s, message: %s" \
+                  % (region, e.message)
+            return
+        for snapshot in ebs_snapshot_list:
+            details = ec2_handler.get_snapshot_details(snapshot)
+            per_gbm_cost = self.pricing_api.get_ebs_volume_cost(
+                region, 'ebs-snapshot', 'per_gbm_stored')
+            details['per_gbm_storage_cost'] = per_gbm_cost
+            max_monthly_cost = per_gbm_cost * details.get('volume_size')
+            details['monthly_cost'] = 'Variable. Depends on actual data stored'
+            details['timestamp'] = int(time.time())
+            ## Map parent volume tags with snapshot
+            ebs_details = self.redis_handler.get_ebs_volume_details(
+                    region, details.get('parent_volume_id'))
+            if ebs_details:
+                if ebs_details.get('instance_id'):
+                    details['instance_id'] = ebs_details.get('instance_id')
+                if ebs_details.get('tag_keys'):
+                    tag_keys = set(ebs_details.get('tag_keys').split(','))
+                    if details.get('tag_keys'):
+                        tag_keys.update(set(details.get('tag_keys').split(',')))
+                    details['tag_keys'] = ','.join(tag_keys)
+                    for tag_name in ebs_details.get('tag_keys').split(','):
+                        tag_value = set(ebs_details.get('tag:%s' % tag_name, '').split(','))
+                        if details.get('tag:%s' % tag_name, '').strip():
+                            old_value = set(details.get('tag:%s' % tag_name).split(','))
+                            tag_value.update(old_value)
+                        if not tag_value:
+                            continue
+                        details['tag:%s' % tag_name] = ','.join(tag_value)
+            ## Save data
+            hash_key, _ = self.redis_handler.save_ebs_snapshot_details(details)
+            self.index_keys.append(hash_key)
+            if self.expire > 0:
+                self.redis_handler.expire(hash_key, self.expire)
+        print "EBS snapshot sync complete for ec2 region: %s" % region
 
 
     def index_records(self):

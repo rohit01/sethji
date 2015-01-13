@@ -139,7 +139,7 @@ def ebs_volume_details(region, volume_id):
         'iops': 'IOPS',
         'region': 'Region',
         'size': 'Size (in GB)',
-        'snapshot_id': 'Snapshot ID',
+        'parent_snapshot_id': 'Parent Snapshot ID',
         'status': 'Status',
         'type': 'Type',
         'zone': 'Zone',
@@ -158,6 +158,45 @@ def ebs_volume_details(region, volume_id):
         create_time = datetime.strptime(
             details.get('create_time').split('.')[0], "%Y-%m-%dT%H:%M:%S")
         details['create_time'] = pretty_date(create_time)
+    organize_details(details, friendly_names)
+    return render_template(
+        'report/item_details.html',
+        item_details=details,
+        page_meta=page_meta,
+    )
+
+
+@mod.route("/ebs_snapshot/<region>/<snapshot_id>")
+@requires_login
+@set_tags_info
+def ebs_snapshot_details(region, snapshot_id):
+    current_month, current_year = get_current_month_and_year()
+    friendly_names = {
+        'owner_alias': 'Owner alias',
+        'owner_id': 'Owner ID',
+        'start_time': 'Start Time',
+        'description': 'Description',
+        'snapshot_id': 'Snapshot ID',
+        'progress': 'Progress',
+        'status': 'Status',
+        'parent_volume_id': 'Parent Volume ID',
+        'encrypted': 'Encrypted',
+        'size': 'Size (in GB)',
+        'region': 'Region',
+        'per_gbm_storage_cost': 'Per GB per month cost (USD)',
+        'instance_id': 'Instance ID',
+    }
+    page_meta = {
+        'title': "EBS snapshot details - %s" % snapshot_id,
+        'name': "EBS snapshot details",
+        '404': "EBS snapshot not found!",
+    }
+    reports = TagReport()
+    details = reports.get_ebs_snapshot_details(region, snapshot_id)
+    if 'start_time' in details:
+        start_time = datetime.strptime(
+            details.get('start_time').split('.')[0], "%Y-%m-%dT%H:%M:%S")
+        details['start_time'] = pretty_date(start_time)
     organize_details(details, friendly_names)
     return render_template(
         'report/item_details.html',

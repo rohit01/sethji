@@ -118,13 +118,43 @@ class Ec2Handler(object):
             'iops': ebs.iops,
             'region': ebs.region.name,
             'size': ebs.size,
-            'snapshot_id': ebs.snapshot_id,
+            'parent_snapshot_id': ebs.snapshot_id,
             'status': ebs.status,
             'type': ebs.type,
             'zone': ebs.zone,
         }
         tag_keys = []
         for k, v in ebs.tags.items():
+            k, v = k.strip(), v.strip()
+            if (not k) or (not v):
+                continue
+            details['tag:%s' % k] = v
+            tag_keys.append(k)
+        if tag_keys:
+            details['tag_keys'] = ','.join(tag_keys)
+        return util.convert_none_into_blank_values(details)
+
+
+    def fetch_ebs_snapshots(self, owner_id):
+        return self.connection.get_all_snapshots(owner=owner_id)
+
+
+    def get_snapshot_details(self, snapshot):
+        details = {
+            'owner_alias': snapshot.owner_alias,
+            'owner_id': snapshot.owner_id,
+            'start_time': snapshot.start_time,
+            'description': snapshot.description,
+            'snapshot_id': snapshot.id,
+            'progress': snapshot.progress,
+            'status': snapshot.status,
+            'parent_volume_id': snapshot.volume_id,
+            'encrypted': snapshot.encrypted,
+            'volume_size': snapshot.volume_size,
+            'region': snapshot.region.name,
+        }
+        tag_keys = []
+        for k, v in snapshot.tags.items():
             k, v = k.strip(), v.strip()
             if (not k) or (not v):
                 continue

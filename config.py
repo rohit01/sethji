@@ -6,6 +6,7 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 ## AWS Credentials
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_OWNER_ID = os.environ.get('AWS_OWNER_ID')
 
 ## Google OAuth Credentials
 GOOGLE_ID = os.environ.get('GOOGLE_ID', None)

@@ -25,7 +25,8 @@ class RedisHandler(object):
         self.connection = redis.StrictRedis(connection_pool=connection_pool)
         self.idle_timeout = idle_timeout
         self.instance_hash_prefix = 'aws:ec2:instance'          ## Suffix: region, instance id
-        self.ebs_vol_hash_prefix = 'aws:ec2:ebs'                ## Suffix: region, volume id
+        self.ebs_vol_hash_prefix = 'aws:ec2:ebs:vol'            ## Suffix: region, volume id
+        self.ebs_snapshot_hash_prefix = 'aws:ec2:ebs:snap'      ## Suffix: region, snapshot id
         self.elb_hash_prefix = 'aws:ec2:elb'                    ## Suffix: region, elb name
         self.elastic_ip_hash_prefix = 'aws:ec2:elastic_ip'      ## Suffix: ip_address
         self.index_prefix = 'aws:index'                         ## Suffix: index_item
@@ -125,6 +126,20 @@ class RedisHandler(object):
         return self.connection.hgetall(hash_key)
 
 
+    def save_ebs_snapshot_details(self, item_details):
+        hash_key = "%s:%s:%s" % (self.ebs_snapshot_hash_prefix,
+                                 item_details['region'],
+                                 item_details['snapshot_id'])
+        status = self.connection.hmset(hash_key, item_details)
+        return (hash_key, status)
+
+
+    def get_ebs_snapshot_details(self, region, snapshot_id):
+        hash_key = "%s:%s:%s" % (self.ebs_snapshot_hash_prefix, region,
+                                 snapshot_id)
+        return self.connection.hgetall(hash_key)
+
+
     def save_indexed_tags(self, indexed_tags):
         status = self.connection.hmset(self.all_tags_hash, indexed_tags)
         return (self.all_tags_hash, status)
@@ -173,6 +188,7 @@ class RedisHandler(object):
         hash_set = set([])
         hash_set.update(self.connection.keys("%s*" % self.instance_hash_prefix) or [])
         hash_set.update(self.connection.keys("%s*" % self.ebs_vol_hash_prefix) or [])
+        hash_set.update(self.connection.keys("%s*" % self.ebs_snapshot_hash_prefix) or [])
         hash_set.update(self.connection.keys("%s*" % self.elb_hash_prefix) or [])
         hash_set.update(self.connection.keys("%s*" % self.elastic_ip_hash_prefix) or [])
         hash_set.update(self.connection.keys("%s*" % self.object_cache_hash) or [])

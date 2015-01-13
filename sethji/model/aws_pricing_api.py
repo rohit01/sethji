@@ -38,7 +38,7 @@ JSON_NAME_TO_EC2_EBS_VOL_API = {
     "Amazon EBS General Purpose (SSD) volumes": "gp2",
     "Amazon EBS Provisioned IOPS (SSD) volumes": "io1",
     "Amazon EBS Magnetic volumes": "standard",
-    "ebsSnapsToS3": "--not-applicable--",
+    "ebsSnapsToS3": "ebs-snapshot",    # This value not real. Custom defined.
 }
 
 
@@ -78,6 +78,7 @@ class AwsPricingApi(object):
     def get_ebs_volume_cost(self, region, ebs_type, cost_type):
         cost_type_to_json_name = {
             'per_gbm': 'perGBmoProvStorage',
+            'per_gbm_stored': 'perGBmoDataStored',
             'per_iops': 'perPIOPSreq',
             'per_mior': 'perMMIOreq',
         }

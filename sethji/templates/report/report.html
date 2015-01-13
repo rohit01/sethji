@@ -64,6 +64,34 @@
   </table>
   {% endif %}
 
+  {% if tag_resources.get(selected_tag, {}).get('ebs_snapshots') %}
+  <h2>EBS Snapshots</h2>
+  <table class="table table-bordered table-striped sortable">
+    <thead>
+      <tr class="info">
+        <th>{{ selected_tag }}</th>
+        <th>Snapshot ID</th>
+        <th>Parent volume size (in GB)</th>
+        <th>{{current_month}} cost (USD)</th>
+        <th>Parent volume ID</th>
+        <th>Region</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for details in tag_resources.get(selected_tag, {}).get('ebs_snapshots', []) %}
+        <tr>
+          <td>{{ details.get('tag:%s' % selected_tag, '-') }}</td>
+          <td><a href="{{ url_for('report.ebs_snapshot_details', region=details.get('region', '-'), snapshot_id=details.get('snapshot_id', '-')) }}">{{ details.get('snapshot_id', '-') }}</a></td>
+          <td>{{ details.get('volume_size', '-') }}</td>
+          <td>{{ details.get('monthly_cost', '-') }}</td>
+          <td><a href="{{ url_for('report.ebs_volume_details', region=details.get('region', '-'), volume_id=details.get('parent_volume_id', '-')) }}">{{ details.get('parent_volume_id', '-') }}</a></td>
+          <td>{{ details.get('region', '-') }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
   {% if tag_resources.get(selected_tag, {}).get('elb') %}
   <h2>Load Balancers (ELB)</h2>
   <table class="table table-bordered table-striped sortable">
@@ -177,6 +205,32 @@
         <td>{{ details.get('status', '-') }}</td>
         <td>{{ details.get('region', '-') }}</td>
       </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if tag_resources.get('--NOT-TRACKED--', {}).get('ebs_snapshots') %}
+  <h2>EBS Snapshots</h2>
+  <table class="table table-bordered table-striped sortable">
+    <thead>
+      <tr class="info">
+        <th>Snapshot ID</th>
+        <th>Parent volume Size (in GB)</th>
+        <th>{{current_month}} cost (USD)</th>
+        <th>Parent volume ID</th>
+        <th>Region</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for details in tag_resources.get('--NOT-TRACKED--', {}).get('ebs_snapshots', []) %}
+        <tr>
+          <td><a href="{{ url_for('report.ebs_snapshot_details', region=details.get('region', '-'), snapshot_id=details.get('snapshot_id', '-')) }}">{{ details.get('snapshot_id', '-') }}</a></td>
+          <td>{{ details.get('volume_size', '-') }}</td>
+          <td>{{ details.get('monthly_cost', '-') }}</td>
+          <td><a href="{{ url_for('report.ebs_volume_details', region=details.get('region', '-'), volume_id=details.get('parent_volume_id', '-')) }}">{{ details.get('parent_volume_id', '-') }}</a></td>
+          <td>{{ details.get('region', '-') }}</td>
+        </tr>
       {% endfor %}
     </tbody>
   </table>

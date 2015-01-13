@@ -69,6 +69,7 @@ class TagReport(object):
                 'elb': [],
                 'elastic_ip': [],
                 'ebs_volumes': [],
+                'ebs_snapshots': [],
             }
         }
         if (not tag_value) or (tag_value.lower() == 'all'):
@@ -77,6 +78,7 @@ class TagReport(object):
                 'elb': [],
                 'elastic_ip': [],
                 'ebs_volumes': [],
+                'ebs_snapshots': [],
             }
         # Get details
         for key in all_hash_set:
@@ -100,6 +102,8 @@ class TagReport(object):
                 tag_resources[category]['elastic_ip'].append(details)
             elif key.startswith(self.redis_handler.ebs_vol_hash_prefix):
                 tag_resources[category]['ebs_volumes'].append(details)
+            elif key.startswith(self.redis_handler.ebs_snapshot_hash_prefix):
+                tag_resources[category]['ebs_snapshots'].append(details)
             else:
                 raise Exception("Unable to categorize info: %s" % str(details))
         return tag_resources
@@ -112,9 +116,11 @@ class TagReport(object):
 
 
     def get_ebs_volume_details(self, region, volume_id):
-        details = self.redis_handler.get_ebs_volume_details(region, volume_id)
-        details = self._cal_monthly_cost(details)
-        return details
+        return self.redis_handler.get_ebs_volume_details(region, volume_id)
+
+
+    def get_ebs_snapshot_details(self, region, snapshot_id):
+        return self.redis_handler.get_ebs_snapshot_details(region, snapshot_id)
 
 
     def get_elb_details(self, region, elb_name):
@@ -130,10 +136,13 @@ class TagReport(object):
 
 
     def _cal_monthly_cost(self, details):
-        if ('per_hour_cost' in details) and ('monthly_cost' not in details):
-            ph_cost = float(details.get('per_hour_cost'))
-            day_count = get_current_month_day_count()
-            details['monthly_cost'] = ph_cost * 24 * day_count
-        if 'monthly_cost' in details:
-            details['monthly_cost'] = round(float(details['monthly_cost']), 3)
+        try:
+            if ('per_hour_cost' in details) and ('monthly_cost' not in details):
+                ph_cost = float(details.get('per_hour_cost'))
+                day_count = get_current_month_day_count()
+                details['monthly_cost'] = ph_cost * 24 * day_count
+            if 'monthly_cost' in details:
+                details['monthly_cost'] = round(float(details['monthly_cost']), 3)
+        except ValueError:
+            return details
         return details
