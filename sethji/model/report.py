@@ -120,17 +120,20 @@ class TagReport(object):
             else:
                 raise Exception("Unable to categorize info: %s" % str(details))
         ## Calculate total cost
+        total_cost = 0.0
         for category, resources in tag_resources.items():
             for resource_type, resource_list in resources.items():
-                total_cost = 0.0
+                cost = 0.0
                 for details in resource_list:
                     try:
-                        total_cost += float(details.get('monthly_cost'))
+                        cost += float(details.get('monthly_cost'))
                     except (ValueError, TypeError):
-                        total_cost = 'Undefined'
-                if isinstance(total_cost, float):
+                        cost = 'Undefined'
+                if isinstance(cost, float):
                     tcost_key = "%s:total_cost" % resource_type
-                    tag_resources[category][tcost_key] = round(total_cost, 3)
+                    tag_resources[category][tcost_key] = round(cost, 3)
+                    total_cost += cost
+        tag_resources['sethji:estimated_monthly_bill'] = round(total_cost, 3)
         return tag_resources
 
 

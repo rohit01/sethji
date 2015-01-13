@@ -387,7 +387,7 @@
   </table>
   {% endif %}
 
-  <center><h3>-------------- END --------------</h3></center>
+  <h3>Estimated bill for {{current_month}}, {{current_year}}: $ {{ tag_resources.get('sethji:estimated_monthly_bill', '--error--') }}</h3>
   <br />
   <br />
 {% endblock %}
