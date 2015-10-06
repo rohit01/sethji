@@ -1,0 +1,6 @@
+# language setting
+language: python
+
+# version numbers
+python:
+  - "2.7"
